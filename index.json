@@ -2,5 +2,431 @@
   "formatVersion": 1,
   "name": "Flux Plugins",
   "description": "Flux 官方插件目录",
-  "plugins": []
+  "plugins": [
+    {
+      "id": "org.flux.danmaku",
+      "name": "弹幕匹配",
+      "description": "匹配本地视频并获取 Bilibili 标准弹幕 XML，支持手动搜索并选择分集。",
+      "category": "MEDIA",
+      "version": "0.1.4",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "danmaku.match",
+        "danmaku.search",
+        "danmaku.fetch"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.danmaku/org.flux.danmaku-0.1.4-linux-aarch64.zip",
+          "sha256": "156f081a11c34d98735eb26dd595b9a4327a14bf64e8b00a77bf9631be633317"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.danmaku/org.flux.danmaku-0.1.4-linux-x86_64.zip",
+          "sha256": "32862681c0750490501348b41a49df09dcf5b10e2ad9ac5478b752dad383c3ca"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.douban",
+      "name": "豆瓣元数据插件",
+      "description": "从豆瓣提供电影、剧集、图片、人物和预告片元数据。公开搜索无需配置；详情接口可配置豆瓣客户端凭据。",
+      "category": "SCRAPER",
+      "version": "0.1.4",
+      "runtime": "process",
+      "providerKey": "douban",
+      "aliases": [
+        "douban"
+      ],
+      "capabilities": [
+        "metadata.search",
+        "metadata.get",
+        "metadata.bundle",
+        "metadata.images",
+        "metadata.credits",
+        "metadata.externalIds",
+        "metadata.trailers"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.douban/org.flux.douban-0.1.4-linux-aarch64.zip",
+          "sha256": "774429bee635a281d3746f750732d78ee911a9b0c5baa266b4aa54f168a7c8f8"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.douban/org.flux.douban-0.1.4-linux-x86_64.zip",
+          "sha256": "2cc044067e971327bc5b67e236ee0f426b1dbdc456a8294707c60869d30cbff4"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.emby-migration",
+      "name": "Emby 迁移助手",
+      "description": "从 Emby 迁移用户资料、媒体状态、播放位置、次数、最近播放时间和收藏；仅支持 Emby 到 Flux。",
+      "category": "MIGRATION",
+      "version": "0.1.5",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "migration.emby"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.emby-migration/org.flux.emby-migration-0.1.5-linux-aarch64.zip",
+          "sha256": "b45c7aa7653fc4cc719dba0e959be067a9145aa2595796111ff5b2aac9e039a3"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.emby-migration/org.flux.emby-migration-0.1.5-linux-x86_64.zip",
+          "sha256": "21bce2c933b9bd3f8eddec16d501e0f0d92b7cf197f28cb49e922ffdf029424d"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.intro-outro-detector",
+      "name": "片头片尾检测",
+      "description": "使用带位误差容忍、对齐和跨分集共识的有界 Chromaprint 指纹识别共同片头和片尾。",
+      "category": "MEDIA",
+      "version": "0.1.3",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "chapters.detect"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.intro-outro-detector/org.flux.intro-outro-detector-0.1.3-linux-aarch64.zip",
+          "sha256": "c9dd214111826c24b55d34f84643a142d351896078c6b2f84f6ab947b1c431c7"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.intro-outro-detector/org.flux.intro-outro-detector-0.1.3-linux-x86_64.zip",
+          "sha256": "bdb205585969e684a2dcd4be1dbdaa73adc13f2c0450615eca51cd2d8ebc6f8c"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.ip-hiofd",
+      "name": "IP归属地查询增强",
+      "description": "通过 Hiofd 查询公网 IP 的归属地信息。",
+      "category": "NETWORK",
+      "version": "0.1.0",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "ip.location"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.ip-hiofd/org.flux.ip-hiofd-0.1.0-linux-aarch64.zip",
+          "sha256": "0a5cf6240ab161509f9c38348b4267d8cf8049e0bd48b22071ea3ddf05b85aea"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.ip-hiofd/org.flux.ip-hiofd-0.1.0-linux-x86_64.zip",
+          "sha256": "7e2134bb096bf8833982ab2e04f2f9394def23b3874374112cd8b53eb5cd458c"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.login-background",
+      "name": "统一登录背景",
+      "description": "在必应每日图片、TMDb 日榜横幅与单张自定义图片之间选择 Flux 登录页背景。",
+      "category": "UTILITY",
+      "version": "0.1.1",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "login_background.get"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.login-background/org.flux.login-background-0.1.1-linux-aarch64.zip",
+          "sha256": "9b708ae1af38df4d5383a3d46f4682233a6b3e69251cd6163b8a580a0619341a"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.login-background/org.flux.login-background-0.1.1-linux-x86_64.zip",
+          "sha256": "dd616d15ef40a36aabc8144a0a07403f579facb6f3bfdb20f0f7613ff1698da6"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.notifier.bark",
+      "name": "Bark 推送",
+      "description": "通过 Bark App 把 Flux 通知推送到 iPhone",
+      "category": "NOTIFICATION",
+      "version": "0.1.0",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "notification.send"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.notifier.bark/org.flux.notifier.bark-0.1.0-linux-aarch64.zip",
+          "sha256": "01911da7addef4bb5f20f96da7c9aee96b45ac49586218cea5c9f7c328b33952"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.notifier.bark/org.flux.notifier.bark-0.1.0-linux-x86_64.zip",
+          "sha256": "72e040111d388997b435f8e2136e04679638143bd02563999db8920dfb2f496e"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.notifier.email",
+      "name": "SMTP 邮件通知",
+      "description": "通过 SMTP 服务器发送纯文本邮件通知",
+      "category": "NOTIFICATION",
+      "version": "0.1.0",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "notification.send"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.notifier.email/org.flux.notifier.email-0.1.0-linux-aarch64.zip",
+          "sha256": "1b04cf2672934147437e97df2be7e2fc3d2796bf67f60fc85cb8c2d968d15b74"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.notifier.email/org.flux.notifier.email-0.1.0-linux-x86_64.zip",
+          "sha256": "5c1d842053d5e9a573581fd2ca5b270b2cee2b334a68130b0ca909a65d20dc90"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.notifier.feishu",
+      "name": "飞书 / Lark 通知",
+      "description": "通过飞书或 Lark 自定义机器人 Webhook 发送 Flux 通知",
+      "category": "NOTIFICATION",
+      "version": "0.1.0",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "notification.send"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.notifier.feishu/org.flux.notifier.feishu-0.1.0-linux-aarch64.zip",
+          "sha256": "fbe1a4fc51227f583e9db805fb00c9bd13b2e6df70441200f4257ea192cf5624"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.notifier.feishu/org.flux.notifier.feishu-0.1.0-linux-x86_64.zip",
+          "sha256": "80679ed2a3b2ef38a8b877b3d207154b079c8b8b54148d071b7b549d4b502265"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.notifier.wecom-app",
+      "name": "企业微信应用通知",
+      "description": "通过企业微信自建应用发送文本通知",
+      "category": "NOTIFICATION",
+      "version": "0.1.0",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "notification.send"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.notifier.wecom-app/org.flux.notifier.wecom-app-0.1.0-linux-aarch64.zip",
+          "sha256": "1f570caae126c906302ee262209af166133ccbbb583dddddd4af6176bcd45ff8"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.notifier.wecom-app/org.flux.notifier.wecom-app-0.1.0-linux-x86_64.zip",
+          "sha256": "53893223a974a9f3a0cb285effe15475e888e581655a40ee5f5ed5291ae4a896"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.qoo-ip138",
+      "name": "ip138 IP归属地查询",
+      "description": "通过 ipshudi.com 查询公网 IP 的归属地信息。",
+      "category": "NETWORK",
+      "version": "0.1.0",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "ip.location"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.qoo-ip138/org.flux.qoo-ip138-0.1.0-linux-aarch64.zip",
+          "sha256": "6e183e78ebc64fae4e934274c5c770471c0883140035c99387db5ff6d8807b4a"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.qoo-ip138/org.flux.qoo-ip138-0.1.0-linux-x86_64.zip",
+          "sha256": "098fc60238a710b9d4484615fd1a804cc4f6dd77d768a5c1cfcd4c7e82853670"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.strm-media-info",
+      "name": "strm媒体信息提取",
+      "description": "使用 ffprobe 提取媒体信息，并使用 ffmpeg 补全 STRM 缩略图。",
+      "category": "MEDIA",
+      "version": "0.2.8",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "media.probe",
+        "emby.route",
+        "media.info.import"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.strm-media-info/org.flux.strm-media-info-0.2.8-linux-aarch64.zip",
+          "sha256": "58c242cd018dfff5ec612e1ca36f034f3d511736f7fec1f1962d5a5b64684caf"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.strm-media-info/org.flux.strm-media-info-0.2.8-linux-x86_64.zip",
+          "sha256": "292de29c737b4f817200d365e45e85d4ff4c34a0879be48f090f335bac87cb7f"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.theintrodb-chapter-source",
+      "name": "TheIntroDB 片头片尾章节源",
+      "description": "从 TheIntroDB 查询已标注的片头和片尾，并保存为 Flux 特殊章节；不读取视频、不运行 ffmpeg。",
+      "category": "MEDIA",
+      "version": "0.1.1",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "chapters.lookup"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.theintrodb-chapter-source/org.flux.theintrodb-chapter-source-0.1.1-linux-aarch64.zip",
+          "sha256": "586376d132705416c37fb75de707341417d549eaa2c5fa321c84f7f1ef053438"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.theintrodb-chapter-source/org.flux.theintrodb-chapter-source-0.1.1-linux-x86_64.zip",
+          "sha256": "19f5af39926aa82cbb98fb1cdb9da355d0c5403534e7a93e27b7ef7644e882e3"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.tmdb",
+      "name": "TMDb 元数据插件",
+      "description": "从 TMDb 提供 Emby 风格电影、剧集和图片元数据。",
+      "category": "SCRAPER",
+      "version": "0.1.12",
+      "runtime": "process",
+      "providerKey": "tmdb",
+      "aliases": [
+        "tmdb"
+      ],
+      "capabilities": [
+        "metadata.search",
+        "metadata.get",
+        "metadata.bundle",
+        "metadata.images",
+        "metadata.credits",
+        "metadata.externalIds",
+        "metadata.trailers"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.tmdb/org.flux.tmdb-0.1.12-linux-aarch64.zip",
+          "sha256": "2e57e6d33fd293f781d5fdeab99f9fd8f233f761b8100a23cba5340712c42a10"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.tmdb/org.flux.tmdb-0.1.12-linux-x86_64.zip",
+          "sha256": "f0fbfa09307d6ab1e6e671e1bc38090fee1d7f3fe3e7bff040ea03de44bc4113"
+        }
+      ]
+    },
+    {
+      "id": "org.flux.webhook",
+      "name": "Webhook 通知器",
+      "description": "将 Flux 核心生成的统一通知内容发送到 HTTP(S) Webhook。",
+      "category": "NOTIFICATION",
+      "version": "0.1.5",
+      "runtime": "process",
+      "providerKey": null,
+      "aliases": [],
+      "capabilities": [
+        "notification.send"
+      ],
+      "packages": [
+        {
+          "platform": "linux",
+          "arch": "aarch64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.webhook/org.flux.webhook-0.1.5-linux-aarch64.zip",
+          "sha256": "c8f0934b6166329bc0f7293923a4cfd7d86daa29ee81bf3b082756682cef8c4f"
+        },
+        {
+          "platform": "linux",
+          "arch": "x86_64",
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.webhook/org.flux.webhook-0.1.5-linux-x86_64.zip",
+          "sha256": "0023c5c89308639813dbd5c669a9cd52e26ff24f7a70efc7025e66d8ce8ccbd2"
+        }
+      ]
+    }
+  ]
 }
