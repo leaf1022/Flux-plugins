@@ -2,15 +2,15 @@ mod ip_location_plugin;
 
 use std::time::Duration;
 
+use fluxd::application::plugin_protocol::{
+    IP_LOCATION_CAPABILITY, IpLocationRpcRequest, IpLocationRpcResult, PluginRpcError,
+};
 use ip_location_plugin::{
     invalid_ip, invalid_response, is_public_ip, read_limited_body, upstream_error,
 };
-use luxd::application::plugin_protocol::{
-    IP_LOCATION_CAPABILITY, IpLocationRpcRequest, IpLocationRpcResult, PluginRpcError,
-};
 use serde_json::{Value, json};
 
-const PLUGIN_ID: &str = "org.lux.qoo-ip138";
+const PLUGIN_ID: &str = "org.flux.qoo-ip138";
 const PLUGIN_NAME: &str = "ip138 IP归属地查询";
 const MAX_RESPONSE_BYTES: usize = 64 * 1024;
 
@@ -43,10 +43,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 async fn lookup(params: Value) -> Result<Value, PluginRpcError> {
     let request: IpLocationRpcRequest = serde_json::from_value(params).map_err(|_| invalid_ip())?;
     let ip = is_public_ip(&request.ip).ok_or_else(invalid_ip)?;
-    let client = luxd::network::client_builder_from_env()
+    let client = fluxd::network::client_builder_from_env()
         .map_err(|_| upstream_error())?
         .timeout(Duration::from_secs(10))
-        .user_agent("Lux IP location plugin")
+        .user_agent("Flux IP location plugin")
         .build()
         .map_err(|_| upstream_error())?;
     let url = format!("https://www.ipshudi.com/{ip}.htm");

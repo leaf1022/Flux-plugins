@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
-  "id": "org.lux.notifier.feishu",
+  "id": "org.flux.notifier.feishu",
   "name": "飞书 / Lark 通知",
-  "description": "通过飞书或 Lark 自定义机器人 Webhook 发送 Lux 通知",
+  "description": "通过飞书或 Lark 自定义机器人 Webhook 发送 Flux 通知",
   "version": "__VERSION__",
   "apiVersion": 1,
   "runtime": {
@@ -50,7 +50,7 @@
         {"value": "post", "label": "富文本 post"},
         {"value": "text", "label": "纯文本 text"}
       ],
-      "description": "post 使用飞书富文本消息，text 使用纯文本消息；通知正文始终原样来自 Lux 核心。"
+      "description": "post 使用飞书富文本消息，text 使用纯文本消息；通知正文始终原样来自 Flux 核心。"
     }
   ],
   "permissions": {

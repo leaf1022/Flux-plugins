@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use luxd::application::{
+use fluxd::application::{
     douban::{
         DoubanClient, DoubanClientConfig, DoubanCredit, DoubanSearchResponse, DoubanSubject,
         DoubanSuggestItem, first_release_date, parse_year, search_target_matches,
@@ -19,7 +19,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use tokio::sync::{Mutex, OnceCell};
 
-const PLUGIN_ID: &str = "org.lux.douban";
+const PLUGIN_ID: &str = "org.flux.douban";
 const PLUGIN_NAME: &str = "豆瓣元数据插件";
 // Public WeChat client credential used by the upstream Jellyfin Douban plugin.
 // Administrators may override it through plugin configuration or the environment.
@@ -562,30 +562,30 @@ async fn client() -> Result<&'static DoubanClient, PluginRpcError> {
     })
 }
 
-fn build_client() -> Result<DoubanClient, luxd::application::douban::DoubanError> {
+fn build_client() -> Result<DoubanClient, fluxd::application::douban::DoubanError> {
     let config = read_plugin_config();
-    let proxy_url = luxd::network::proxy_url_from_env().map_err(|error| {
-        luxd::application::douban::DoubanError::InvalidConfig(error.to_string())
+    let proxy_url = fluxd::network::proxy_url_from_env().map_err(|error| {
+        fluxd::application::douban::DoubanError::InvalidConfig(error.to_string())
     })?;
     let api_key = Some(
-        env::var("LUX_DOUBAN_API_KEY")
+        env::var("FLUX_DOUBAN_API_KEY")
             .ok()
             .filter(|value| !value.trim().is_empty())
             .unwrap_or_else(|| EMBEDDED_DOUBAN_API_KEY.to_owned()),
     );
-    let api_secret = env::var("LUX_DOUBAN_API_SECRET")
+    let api_secret = env::var("FLUX_DOUBAN_API_SECRET")
         .ok()
         .filter(|value| !value.trim().is_empty());
-    let request_interval_ms = env::var("LUX_DOUBAN_REQUEST_INTERVAL_MS")
+    let request_interval_ms = env::var("FLUX_DOUBAN_REQUEST_INTERVAL_MS")
         .ok()
         .and_then(|value| value.parse::<u64>().ok())
         .or(config.request_interval_ms)
         .unwrap_or(1_500)
         .min(60_000);
     DoubanClient::new(DoubanClientConfig {
-        api_base_url: env::var("LUX_DOUBAN_API_BASE_URL")
+        api_base_url: env::var("FLUX_DOUBAN_API_BASE_URL")
             .unwrap_or_else(|_| "https://frodo.douban.com/".to_owned()),
-        suggest_base_url: env::var("LUX_DOUBAN_SUGGEST_BASE_URL")
+        suggest_base_url: env::var("FLUX_DOUBAN_SUGGEST_BASE_URL")
             .unwrap_or_else(|_| "https://movie.douban.com/".to_owned()),
         api_key,
         api_secret,
@@ -597,7 +597,7 @@ fn build_client() -> Result<DoubanClient, luxd::application::douban::DoubanError
 }
 
 fn read_plugin_config() -> DoubanPluginConfig {
-    let Some(path) = plugin_config_path(env::var_os("LUX_PLUGIN_CONFIG_PATH").map(PathBuf::from))
+    let Some(path) = plugin_config_path(env::var_os("FLUX_PLUGIN_CONFIG_PATH").map(PathBuf::from))
     else {
         return DoubanPluginConfig::default();
     };
@@ -658,10 +658,10 @@ fn unsupported(item_type: &str) -> PluginRpcError {
     }
 }
 
-fn provider_error(error: luxd::application::douban::DoubanError) -> PluginRpcError {
+fn provider_error(error: fluxd::application::douban::DoubanError) -> PluginRpcError {
     let code = match error {
-        luxd::application::douban::DoubanError::MissingCredentials => "PLUGIN_AUTH_FAILED",
-        luxd::application::douban::DoubanError::UnsupportedItemType(_) => {
+        fluxd::application::douban::DoubanError::MissingCredentials => "PLUGIN_AUTH_FAILED",
+        fluxd::application::douban::DoubanError::UnsupportedItemType(_) => {
             "PLUGIN_PROVIDER_NOT_FOUND"
         }
         _ => "PLUGIN_PROVIDER_ERROR",
@@ -700,7 +700,7 @@ mod tests {
     }
 
     #[test]
-    fn maps_subject_fields_to_lux_metadata() {
+    fn maps_subject_fields_to_flux_metadata() {
         let metadata = subject_metadata(&subject(), "Movie", None).unwrap_or(Value::Null);
         assert_eq!(metadata["Type"], "Movie");
         assert_eq!(metadata["ProviderIds"]["Douban"], "1291561");
@@ -781,9 +781,9 @@ mod tests {
     fn plugin_config_path_prefers_the_host_supplied_file() {
         assert_eq!(
             plugin_config_path(Some(PathBuf::from(
-                "/config/plugin-config/org.lux.douban.json",
+                "/config/plugin-config/org.flux.douban.json",
             ))),
-            Some(PathBuf::from("/config/plugin-config/org.lux.douban.json"))
+            Some(PathBuf::from("/config/plugin-config/org.flux.douban.json"))
         );
         assert_eq!(plugin_config_path(None), None);
     }

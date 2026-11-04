@@ -3,11 +3,11 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use hmac::{Hmac, Mac};
-use luxd::application::plugin_protocol::{
+use fluxd::application::plugin_protocol::{
     NOTIFICATION_SEND_CAPABILITY, NOTIFICATION_SEND_METHOD, NotificationSendRpcResult,
     NotificationSendStatus, PluginRequest, PluginResponse, PluginRpcError,
 };
+use hmac::{Hmac, Mac};
 use reqwest::{Client, StatusCode, Url, redirect::Policy};
 use serde::Deserialize;
 use serde_json::{Map, Value, json};
@@ -17,7 +17,7 @@ use tokio::{
     net::lookup_host,
 };
 
-const PLUGIN_ID: &str = "org.lux.webhook";
+const PLUGIN_ID: &str = "org.flux.webhook";
 const PLUGIN_NAME: &str = "Webhook 通知器";
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(20);
 const MAX_URL_LENGTH: usize = 2048;
@@ -27,14 +27,14 @@ const MAX_RETRY_AFTER_SECONDS: i64 = 3600;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum PayloadFormat {
-    Lux,
+    Flux,
     Emby,
 }
 
 impl PayloadFormat {
     fn parse(value: Option<&str>) -> Result<Self, PluginRpcError> {
-        match value.unwrap_or("LUX").trim().to_ascii_uppercase().as_str() {
-            "LUX" => Ok(Self::Lux),
+        match value.unwrap_or("FLUX").trim().to_ascii_uppercase().as_str() {
+            "FLUX" => Ok(Self::Flux),
             "EMBY" => Ok(Self::Emby),
             _ => Err(invalid_request()),
         }
@@ -161,7 +161,7 @@ async fn send_notification(params: Value) -> Result<Value, PluginRpcError> {
                 .filter(|value| !value.is_empty())
         })
         .ok_or_else(invalid_request)?;
-    let template_values = build_payload(&request.event, PayloadFormat::Lux)?;
+    let template_values = build_payload(&request.event, PayloadFormat::Flux)?;
     let rendered_url = render_url_template(target_url, &template_values)?;
     let url = validate_webhook_url(&rendered_url, request.target.allow_private_network)
         .map_err(|_| invalid_request())?;
@@ -177,14 +177,14 @@ async fn send_notification(params: Value) -> Result<Value, PluginRpcError> {
     let response = client
         .post(url)
         .header("Content-Type", "application/json")
-        .header("X-Lux-Event-Id", event_string(&request.event, "eventId")?)
+        .header("X-Flux-Event-Id", event_string(&request.event, "eventId")?)
         .header(
-            "X-Lux-Event-Type",
+            "X-Flux-Event-Type",
             event_string(&request.event, "eventType")?,
         )
-        .header("X-Lux-Timestamp", &timestamp)
+        .header("X-Flux-Timestamp", &timestamp)
         .header(
-            "X-Lux-Signature",
+            "X-Flux-Signature",
             canonical_signature(secret, &timestamp, &body),
         )
         .body(body)
@@ -214,7 +214,7 @@ fn build_payload(event: &Value, format: PayloadFormat) -> Result<Value, PluginRp
         .get("data")
         .and_then(Value::as_object)
         .ok_or_else(invalid_request)?;
-    if format == PayloadFormat::Lux {
+    if format == PayloadFormat::Flux {
         let mut payload = Map::new();
         for key in [
             "schemaVersion",
@@ -583,8 +583,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn lux_payload_flattens_the_provider_neutral_event() {
-        let payload = build_payload(&event(), PayloadFormat::Lux).expect("payload");
+    fn flux_payload_flattens_the_provider_neutral_event() {
+        let payload = build_payload(&event(), PayloadFormat::Flux).expect("payload");
 
         assert_eq!(payload["schemaVersion"], 1);
         assert_eq!(payload["eventType"], "MEDIA_ADDED");
@@ -606,10 +606,10 @@ mod tests {
     }
 
     #[test]
-    fn lux_payload_never_carries_the_emby_object() {
+    fn flux_payload_never_carries_the_emby_object() {
         let mut event = playback_event();
         event["data"]["emby"] = json!({"Event": "playback.start"});
-        let payload = build_payload(&event, PayloadFormat::Lux).expect("payload");
+        let payload = build_payload(&event, PayloadFormat::Flux).expect("payload");
         assert!(payload.get("emby").is_none());
     }
 
@@ -653,22 +653,22 @@ mod tests {
     #[test]
     fn core_notification_fields_are_forwarded_without_plugin_rendering() {
         let mut event = playback_event();
-        event["data"]["source"] = json!("lux");
+        event["data"]["source"] = json!("flux");
         event["data"]["title"] = json!("alice恢复播放 示例电影");
         event["data"]["content"] =
-            json!("●●●○○○○○○○○○○○○○○○○○17.25%\nMKV · 直接播放\n设备：Lux Prism");
+            json!("●●●○○○○○○○○○○○○○○○○○17.25%\nMKV · 直接播放\n设备：Flux Prism");
         event["data"]["body"] = event["data"]["content"].clone();
         event["data"]["timestamp"] = json!("2023-11-14T22:13:20Z");
 
-        let lux_payload = build_payload(&event, PayloadFormat::Lux).expect("Lux payload");
-        assert_eq!(lux_payload["source"], "lux");
-        assert_eq!(lux_payload["title"], "alice恢复播放 示例电影");
-        assert_eq!(lux_payload["content"], event["data"]["content"]);
-        assert_eq!(lux_payload["body"], lux_payload["content"]);
-        assert_eq!(lux_payload["timestamp"], "2023-11-14T22:13:20Z");
+        let flux_payload = build_payload(&event, PayloadFormat::Flux).expect("Flux payload");
+        assert_eq!(flux_payload["source"], "flux");
+        assert_eq!(flux_payload["title"], "alice恢复播放 示例电影");
+        assert_eq!(flux_payload["content"], event["data"]["content"]);
+        assert_eq!(flux_payload["body"], flux_payload["content"]);
+        assert_eq!(flux_payload["timestamp"], "2023-11-14T22:13:20Z");
 
         let emby_payload = build_payload(&event, PayloadFormat::Emby).expect("Emby payload");
-        assert_eq!(emby_payload["Source"], "lux");
+        assert_eq!(emby_payload["Source"], "flux");
         assert_eq!(emby_payload["Title"], "alice恢复播放 示例电影");
         assert_eq!(emby_payload["Content"], event["data"]["content"]);
         assert_eq!(emby_payload["Body"], emby_payload["Content"]);
@@ -679,7 +679,7 @@ mod tests {
 
         let url = render_url_template(
             "https://qmby.example.com/notify?title={title}&content={content}",
-            &lux_payload,
+            &flux_payload,
         )
         .expect("URL template");
         assert!(url.contains(
@@ -696,12 +696,12 @@ mod tests {
             "config": {
                 "url": "https://example.com/hook",
                 "bodyTemplate": "{\"title\":\"overridden\"}",
-                "payloadFormat": "LUX"
+                "payloadFormat": "FLUX"
             },
             "secret": "1234567890123456"
         }))
         .expect("legacy bodyTemplate should remain deserializable");
-        assert_eq!(request.config.payload_format.as_deref(), Some("LUX"));
+        assert_eq!(request.config.payload_format.as_deref(), Some("FLUX"));
         assert_eq!(
             request.config._body_template.as_deref(),
             Some("{\"title\":\"overridden\"}")
@@ -747,9 +747,9 @@ mod tests {
                 "container": "mkv",
                 "playMethod": "DirectPlay",
                 "resumed": true,
-                "client": "Lux Prism",
-                "deviceName": "Lux Prism",
-                "deviceType": "Lux Prism"
+                "client": "Flux Prism",
+                "deviceName": "Flux Prism",
+                "deviceType": "Flux Prism"
             }
         })
     }

@@ -1,7 +1,7 @@
 //! Feishu / Lark custom bot notifier plugin.
 //!
-//! The plugin speaks the Lux stdio JSON-RPC protocol through
-//! [`luxd::application::notifier_plugin_sdk::run_notifier`] and only owns the Feishu-specific
+//! The plugin speaks the Flux stdio JSON-RPC protocol through
+//! [`fluxd::application::notifier_plugin_sdk::run_notifier`] and only owns the Feishu-specific
 //! payload and signature: the host keeps retries, delivery records and event rendering.
 //!
 //! The destination credential arrives in [`NotificationSendRpcRequest::secret`] as `hookId` or
@@ -10,19 +10,19 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
-use hmac::{Hmac, Mac};
-use luxd::application::{
+use fluxd::application::{
     notifier_plugin_sdk::{
         delivered, failed, guard_destination, outbound_http_client_builder_from_env,
         render_event_text, result_from_http_status, retryable, run_notifier,
     },
     plugin_protocol::{NotificationSendRpcRequest, NotificationSendRpcResult},
 };
+use hmac::{Hmac, Mac};
 use reqwest::{Client, Url};
 use serde_json::{Value, json};
 use sha2::Sha256;
 
-const PLUGIN_ID: &str = "org.lux.notifier.feishu";
+const PLUGIN_ID: &str = "org.flux.notifier.feishu";
 const FEISHU_BASE_URL: &str = "https://open.feishu.cn";
 const LARK_BASE_URL: &str = "https://open.larksuite.com";
 const HOOK_PATH: &str = "/open-apis/bot/v2/hook";

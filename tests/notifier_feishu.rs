@@ -1,6 +1,6 @@
 //! Contract tests for the Feishu / Lark notifier plugin process.
 //!
-//! Every test drives the real `lux-plugin-notifier-feishu` binary over the stdio JSON-RPC protocol
+//! Every test drives the real `flux-plugin-notifier-feishu` binary over the stdio JSON-RPC protocol
 //! against a local mock HTTP server. No test reaches the public Feishu or Lark API, and every
 //! credential used here is a synthetic test value.
 
@@ -18,11 +18,11 @@ use axum::{
     routing::post,
 };
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
-use hmac::{Hmac, Mac};
-use luxd::application::plugin_protocol::{
+use fluxd::application::plugin_protocol::{
     NotificationSendRpcResult, NotificationSendStatus, PluginManifest, PluginRequest,
     PluginResponse,
 };
+use hmac::{Hmac, Mac};
 use serde_json::{Value, json};
 use sha2::Sha256;
 use tokio::{
@@ -30,7 +30,7 @@ use tokio::{
     process::Command,
 };
 
-const PLUGIN_BIN: &str = env!("CARGO_BIN_EXE_lux-plugin-notifier-feishu");
+const PLUGIN_BIN: &str = env!("CARGO_BIN_EXE_flux-plugin-notifier-feishu");
 const TEST_HOOK_ID: &str = "test-hook-1";
 const TEST_SIGN_SECRET: &str = "test-sign-secret";
 
@@ -62,7 +62,7 @@ fn backend_with(secret: Option<&str>, config: Value, approval: PrivateNetwork) -
             "data": {
                 "title": "媒体新增",
                 "content": "新增媒体：2 个\n媒体库：电影",
-                "source": "lux",
+                "source": "flux",
                 "timestamp": "2023-11-14T22:13:20Z"
             }
         },
@@ -205,10 +205,10 @@ async fn run_plugin_with_proxy(
 ) -> Result<PluginRun, Box<dyn std::error::Error>> {
     let mut command = Command::new(PLUGIN_BIN);
     command
-        .env_remove("LUX_CONFIG_DIR")
-        .env_remove("LUX_PROXY_URL");
+        .env_remove("FLUX_CONFIG_DIR")
+        .env_remove("FLUX_PROXY_URL");
     if let Some(proxy_url) = proxy_url {
-        command.env("LUX_PROXY_URL", proxy_url);
+        command.env("FLUX_PROXY_URL", proxy_url);
     }
     let mut child = command
         .stdin(Stdio::piped())
@@ -691,18 +691,18 @@ async fn keeps_the_credential_out_of_results_and_logs() -> Result<(), Box<dyn st
 fn manifest_declares_a_single_secret_field_and_the_notification_contract() {
     let manifest = PluginManifest::from_value(
         serde_json::from_str(
-            &include_str!("../manifests/org.lux.notifier.feishu.json")
+            &include_str!("../manifests/org.flux.notifier.feishu.json")
                 .replace("__VERSION__", "0.1.0")
                 .replace(
                     "__ENTRYPOINT__",
-                    "binaries/${platform}-${arch}/lux-plugin-notifier-feishu",
+                    "binaries/${platform}-${arch}/flux-plugin-notifier-feishu",
                 ),
         )
         .expect("the plugin manifest is valid JSON"),
     )
     .expect("the plugin manifest passes host validation");
 
-    assert_eq!(manifest.id, "org.lux.notifier.feishu");
+    assert_eq!(manifest.id, "org.flux.notifier.feishu");
     assert_eq!(manifest.plugin_type, "notification");
     assert_eq!(manifest.category, "NOTIFICATION");
     assert_eq!(manifest.capabilities, vec!["notification.send"]);

@@ -1,6 +1,6 @@
-//! Bark push notification plugin (`org.lux.notifier.bark`).
+//! Bark push notification plugin (`org.flux.notifier.bark`).
 //!
-//! The Lux host owns the delivery queue, retries, persistence and logs; this process only turns one
+//! The Flux host owns the delivery queue, retries, persistence and logs; this process only turns one
 //! `notification.send` request into one Bark `/push` call. The Bark device key is the per-destination
 //! credential: it arrives exclusively through the RPC `secret` field and is never logged, never
 //! returned in a result and never placed in a URL (Bark pushes carry it in the JSON body).
@@ -16,7 +16,7 @@
 
 use std::process::ExitCode;
 
-use luxd::application::{
+use fluxd::application::{
     notifier_plugin_sdk::{
         DestinationGuardError, delivered, failed, guard_destination,
         outbound_http_client_builder_from_env, outbound_http_client_from_env, render_event_text,

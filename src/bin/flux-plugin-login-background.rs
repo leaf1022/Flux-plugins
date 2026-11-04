@@ -1,6 +1,6 @@
 use std::{env, fmt, io, path::PathBuf, time::Duration};
 
-use luxd::{
+use fluxd::{
     application::{
         plugin_protocol::{
             LOGIN_BACKGROUND_CUSTOM_IMAGE_PATH, LOGIN_BACKGROUND_GET_CAPABILITY,
@@ -19,7 +19,7 @@ use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
 };
 
-const PLUGIN_ID: &str = "org.lux.login-background";
+const PLUGIN_ID: &str = "org.flux.login-background";
 const PLUGIN_NAME: &str = "统一登录背景";
 const BING_BASE_URL: &str = "https://www.bing.com";
 const BING_ARCHIVE_URL: &str = "https://www.bing.com/HPImageArchive.aspx";
@@ -221,7 +221,7 @@ async fn get_background(params: Value) -> Result<Value, PluginRpcError> {
 }
 
 async fn read_plugin_config() -> Result<PluginConfig, UnifiedBackgroundError> {
-    let Some(path) = env::var_os("LUX_PLUGIN_CONFIG_PATH").map(PathBuf::from) else {
+    let Some(path) = env::var_os("FLUX_PLUGIN_CONFIG_PATH").map(PathBuf::from) else {
         return Ok(PluginConfig::default());
     };
     let bytes = match fs::read(path).await {
@@ -493,7 +493,7 @@ fn clean_text(value: &str, max_characters: usize) -> Option<String> {
 mod tests {
     use std::time::Duration;
 
-    use luxd::application::{
+    use fluxd::application::{
         plugin_protocol::{LoginBackgroundContentKind, PluginManifest},
         tmdb::{TmdbClient, TmdbClientConfig},
     };
@@ -651,12 +651,12 @@ mod tests {
     #[test]
     fn manifest_declares_only_one_unified_provider_and_host_managed_image() {
         let mut value: Value = serde_json::from_str(include_str!(
-            "../../manifests/org.lux.login-background.json"
+            "../../manifests/org.flux.login-background.json"
         ))
         .expect("manifest should parse");
         value["version"] = json!("0.1.0");
         let manifest = PluginManifest::from_value(value).expect("manifest should satisfy SDK");
-        assert_eq!(manifest.id, "org.lux.login-background");
+        assert_eq!(manifest.id, "org.flux.login-background");
         assert_eq!(manifest.plugin_type, "login_background");
         assert_eq!(manifest.permissions.filesystem, Vec::<String>::new());
         assert_eq!(

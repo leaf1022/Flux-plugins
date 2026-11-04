@@ -148,12 +148,13 @@ impl TmdbClient {
     }
 
     pub fn from_env_or_token(fallback_token: Option<String>) -> Result<Self, TmdbError> {
-        let read_access_token = env::var("LUX_TMDB_READ_ACCESS_TOKEN")
+        let read_access_token = env::var("FLUX_TMDB_READ_ACCESS_TOKEN")
             .ok()
             .filter(|token| !token.trim().is_empty())
             .or(fallback_token);
         let config = TmdbClientConfig {
-            base_url: env::var("LUX_TMDB_BASE_URL").unwrap_or_else(|_| DEFAULT_BASE_URL.to_owned()),
+            base_url: env::var("FLUX_TMDB_BASE_URL")
+                .unwrap_or_else(|_| DEFAULT_BASE_URL.to_owned()),
             proxy_url: proxy_url_from_env()
                 .map_err(|error| TmdbError::InvalidProxyUrl(error.to_string()))?,
             api_key: None,
@@ -175,10 +176,10 @@ impl TmdbClient {
         configured_token: Option<String>,
         configured_base_url: Option<String>,
     ) -> Result<Self, TmdbError> {
-        let environment_api_key = env::var("LUX_TMDB_API_KEY")
+        let environment_api_key = env::var("FLUX_TMDB_API_KEY")
             .ok()
             .filter(|value| !value.trim().is_empty());
-        let environment_token = env::var("LUX_TMDB_READ_ACCESS_TOKEN")
+        let environment_token = env::var("FLUX_TMDB_READ_ACCESS_TOKEN")
             .ok()
             .filter(|value| !value.trim().is_empty());
         let fallback_credential = environment_api_key
@@ -198,7 +199,7 @@ impl TmdbClient {
         let config = TmdbClientConfig {
             base_url: configured_base_url
                 .filter(|value| !value.trim().is_empty())
-                .or_else(|| env::var("LUX_TMDB_BASE_URL").ok())
+                .or_else(|| env::var("FLUX_TMDB_BASE_URL").ok())
                 .unwrap_or_else(|| DEFAULT_BASE_URL.to_owned()),
             proxy_url: proxy_url_from_env()
                 .map_err(|error| TmdbError::InvalidProxyUrl(error.to_string()))?,

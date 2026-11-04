@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, path::PathBuf, time::Duration};
 
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
-use luxd::application::{
+use fluxd::application::{
     plugin_protocol::{
         MediaProbeRpcResult, MediaProbeRpcStream, MediaProbeRpcStreamType, PluginEmbyRouteRequest,
         PluginMediaInfoChapter, PluginMediaInfoImport, PluginMediaInfoTarget, PluginRequest,
@@ -18,7 +18,7 @@ use tokio::{
     time::timeout,
 };
 
-const PLUGIN_ID: &str = "org.lux.strm-media-info";
+const PLUGIN_ID: &str = "org.flux.strm-media-info";
 const PLUGIN_NAME: &str = "strm媒体信息提取";
 const FFPROBE_TIMEOUT: Duration = Duration::from_secs(30);
 const FFMPEG_TIMEOUT: Duration = Duration::from_secs(60);
@@ -28,7 +28,7 @@ const MAX_ERROR_BYTES: usize = 8 * 1024;
 const TICKS_PER_SECOND: i64 = 10_000_000;
 const DEFAULT_STRM_THUMBNAIL_POSITION_PERCENT: i64 = 30;
 /// Same identity the host uses for STRM playback, so servers that gate on it treat both alike.
-const HTTP_USER_AGENT: &str = "Lux/strm-playback";
+const HTTP_USER_AGENT: &str = "Flux/strm-playback";
 /// Per-read/connect stall limit (microseconds) so a hung server ends the child on its own even if
 /// the host has to kill this plugin without running destructors.
 const HTTP_RW_TIMEOUT_MICROS: &str = "15000000";
@@ -131,7 +131,7 @@ fn sync_media_info(params: Value) -> Result<Value, PluginRpcError> {
             .query
             .as_deref()
             .and_then(|query| {
-                reqwest::Url::parse(&format!("http://lux.invalid/?{query}"))
+                reqwest::Url::parse(&format!("http://flux.invalid/?{query}"))
                     .ok()?
                     .query_pairs()
                     .find(|(key, _)| key.eq_ignore_ascii_case("path"))
@@ -237,7 +237,7 @@ fn parse_emby_bundle(bundle: &Value) -> Result<MediaProbeResult, PluginRpcError>
                 .get("Index")
                 .and_then(Value::as_i64)
                 .unwrap_or(ordinal as i64);
-            Ok(luxd::application::probe::MediaStreamResult {
+            Ok(fluxd::application::probe::MediaStreamResult {
                 stream_index,
                 stream_type,
                 codec: string_field(stream, "Codec"),
@@ -327,7 +327,7 @@ fn restore_target(query: &Option<String>) -> Result<PluginMediaInfoTarget, Plugi
         code: "EMBY_ROUTE_INVALID_REQUEST".to_owned(),
         message: "Emby media info target is missing".to_owned(),
     })?;
-    let url = reqwest::Url::parse(&format!("http://lux.invalid/?{query}")).map_err(|_| {
+    let url = reqwest::Url::parse(&format!("http://flux.invalid/?{query}")).map_err(|_| {
         PluginRpcError {
             code: "EMBY_ROUTE_INVALID_REQUEST".to_owned(),
             message: "Emby media info target is invalid".to_owned(),
@@ -686,13 +686,13 @@ fn classify_failure(stderr: &[u8], fallback: fn() -> PluginRpcError) -> PluginRp
 }
 
 fn ffprobe_binary() -> Result<PathBuf, PluginRpcError> {
-    Ok(std::env::var_os("LUX_FFPROBE_BINARY")
+    Ok(std::env::var_os("FLUX_FFPROBE_BINARY")
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from("ffprobe")))
 }
 
 fn ffmpeg_binary() -> Result<PathBuf, PluginRpcError> {
-    Ok(std::env::var_os("LUX_FFMPEG_BINARY")
+    Ok(std::env::var_os("FLUX_FFMPEG_BINARY")
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from("ffmpeg")))
 }
@@ -860,7 +860,7 @@ fn rpc_result(result: MediaProbeResult, thumbnail: Option<Vec<u8>>) -> MediaProb
     }
 }
 
-fn rpc_stream(stream: luxd::application::probe::MediaStreamResult) -> MediaProbeRpcStream {
+fn rpc_stream(stream: fluxd::application::probe::MediaStreamResult) -> MediaProbeRpcStream {
     MediaProbeRpcStream {
         stream_index: stream.stream_index,
         stream_type: match stream.stream_type {
@@ -977,7 +977,7 @@ mod tests {
         let args = network_args("HTTPS://cdn.example/v.mkv");
         assert!(
             args.windows(2)
-                .any(|pair| pair == ["-user_agent", "Lux/strm-playback"])
+                .any(|pair| pair == ["-user_agent", "Flux/strm-playback"])
         );
         assert!(args.contains(&"-rw_timeout"));
         assert!(network_args("/mnt/media/v.mkv").is_empty());

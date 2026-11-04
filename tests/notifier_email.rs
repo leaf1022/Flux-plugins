@@ -1,4 +1,4 @@
-//! Behaviour of the `org.lux.notifier.email` SMTP notifier plugin process.
+//! Behaviour of the `org.flux.notifier.email` SMTP notifier plugin process.
 //!
 //! Every test drives the real binary over its stdio JSON-RPC protocol against a local fake SMTP
 //! server bound to `127.0.0.1` on a random port, so no test reaches a real mail provider and no
@@ -13,7 +13,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use luxd::application::plugin_protocol::{
+use fluxd::application::plugin_protocol::{
     NotificationSendRpcResult, NotificationSendStatus, PluginManifest, PluginRequest,
     PluginResponse,
 };
@@ -29,13 +29,13 @@ const TEST_SECRET: &str = "smtp-test-password-1";
 /// A second, clearly fake credential used for the rejected-authentication cases.
 const REJECTED_SECRET: &str = "smtp-test-password-rejected";
 /// Test-only timeout knob, clamped by the plugin to at most the SDK's delivery window.
-const TIMEOUT_ENV: &str = "LUX_PLUGIN_SMTP_TIMEOUT_SECONDS";
+const TIMEOUT_ENV: &str = "FLUX_PLUGIN_SMTP_TIMEOUT_SECONDS";
 
 /// Test-only plaintext seam of the plugin. A destination never offers plaintext SMTP; the suite
 /// needs an unencrypted local relay to drive the happy path (a TLS server and a custom trust root
 /// would need a new crate, which this task must not add). The plugin accepts `security: "none"`
 /// only while this flag is `1` and the relay address is a loopback address.
-const PLAINTEXT_TEST_ENV: &str = "LUX_NOTIFIER_EMAIL_TEST_PLAINTEXT";
+const PLAINTEXT_TEST_ENV: &str = "FLUX_NOTIFIER_EMAIL_TEST_PLAINTEXT";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum SmtpReply {
@@ -224,9 +224,9 @@ impl Session {
     }
 
     async fn start_with(timeout_seconds: Option<u64>, plaintext: bool) -> io::Result<Self> {
-        let mut command = Command::new(env!("CARGO_BIN_EXE_lux-plugin-notifier-email"));
+        let mut command = Command::new(env!("CARGO_BIN_EXE_flux-plugin-notifier-email"));
         command
-            .env_remove("LUX_PROXY_URL")
+            .env_remove("FLUX_PROXY_URL")
             .env_remove(TIMEOUT_ENV)
             .env_remove(PLAINTEXT_TEST_ENV)
             .stdin(Stdio::piped())
@@ -300,7 +300,7 @@ fn email_config(address: SocketAddr, security: &str, username: Option<&str>) -> 
         "smtpHost": address.ip().to_string(),
         "smtpPort": address.port(),
         "security": security,
-        "from": "lux@example.invalid",
+        "from": "flux@example.invalid",
         "to": "ops@example.invalid, oncall@example.invalid",
     });
     if let Some(username) = username {
@@ -333,7 +333,7 @@ fn send_params_with_private_approval(
             "data": {
                 "title": "媒体新增",
                 "content": "新增媒体：2 个\n媒体库：电影",
-                "source": "lux",
+                "source": "flux",
                 "timestamp": "2023-11-14T22:13:20Z"
             }
         },
@@ -418,7 +418,7 @@ fn assert_no_secret_leak(result: &NotificationSendRpcResult, log: &str) {
         "the plugin log must not contain the destination host: {log}"
     );
     assert!(
-        log.contains("org.lux.notifier.email"),
+        log.contains("org.flux.notifier.email"),
         "the plugin must log a stable diagnostic line, got: {log}"
     );
 }
@@ -430,7 +430,7 @@ async fn delivers_a_plain_text_message_over_smtp() -> Result<(), Box<dyn std::er
 
     let result = session
         .notify(send_params(
-            email_config(server.address, "none", Some("lux@example.invalid")),
+            email_config(server.address, "none", Some("flux@example.invalid")),
             Some(TEST_SECRET),
         ))
         .await?;
@@ -511,7 +511,7 @@ async fn a_missing_or_empty_secret_is_a_permanent_failure() -> Result<(), Box<dy
 {
     let server = FakeSmtp::start(SmtpReply::Deliver).await?;
     let mut session = Session::start_plaintext(None).await?;
-    let config = email_config(server.address, "none", Some("lux@example.invalid"));
+    let config = email_config(server.address, "none", Some("flux@example.invalid"));
 
     let missing = session.notify(send_params(config.clone(), None)).await?;
     assert_eq!(missing.status, NotificationSendStatus::Failed);
@@ -545,47 +545,47 @@ async fn an_invalid_configuration_is_a_permanent_failure_with_a_stable_code()
     let configurations = [
         (
             "missing host",
-            json!({"smtpPort": port, "from": "lux@example.invalid", "to": "ops@example.invalid"}),
+            json!({"smtpPort": port, "from": "flux@example.invalid", "to": "ops@example.invalid"}),
         ),
         (
             "empty host",
-            json!({"smtpHost": "", "smtpPort": port, "from": "lux@example.invalid", "to": "ops@example.invalid"}),
+            json!({"smtpHost": "", "smtpPort": port, "from": "flux@example.invalid", "to": "ops@example.invalid"}),
         ),
         (
             "host with whitespace",
-            json!({"smtpHost": format!("{host} "), "smtpPort": port, "from": "lux@example.invalid", "to": "ops@example.invalid"}),
+            json!({"smtpHost": format!("{host} "), "smtpPort": port, "from": "flux@example.invalid", "to": "ops@example.invalid"}),
         ),
         (
             "unknown security",
-            json!({"smtpHost": host, "smtpPort": port, "security": "tls1", "from": "lux@example.invalid", "to": "ops@example.invalid"}),
+            json!({"smtpHost": host, "smtpPort": port, "security": "tls1", "from": "flux@example.invalid", "to": "ops@example.invalid"}),
         ),
         (
             "plaintext security is not a destination option",
-            json!({"smtpHost": host, "smtpPort": port, "security": "none", "from": "lux@example.invalid", "to": "ops@example.invalid"}),
+            json!({"smtpHost": host, "smtpPort": port, "security": "none", "from": "flux@example.invalid", "to": "ops@example.invalid"}),
         ),
         (
             "host with a user part",
-            json!({"smtpHost": "user@example.invalid", "smtpPort": port, "from": "lux@example.invalid", "to": "ops@example.invalid"}),
+            json!({"smtpHost": "user@example.invalid", "smtpPort": port, "from": "flux@example.invalid", "to": "ops@example.invalid"}),
         ),
         (
             "host with a backslash",
-            json!({"smtpHost": format!("example\\invalid"), "smtpPort": port, "from": "lux@example.invalid", "to": "ops@example.invalid"}),
+            json!({"smtpHost": format!("example\\invalid"), "smtpPort": port, "from": "flux@example.invalid", "to": "ops@example.invalid"}),
         ),
         (
             "bracketed ipv6 host",
-            json!({"smtpHost": "[::1]", "smtpPort": port, "from": "lux@example.invalid", "to": "ops@example.invalid"}),
+            json!({"smtpHost": "[::1]", "smtpPort": port, "from": "flux@example.invalid", "to": "ops@example.invalid"}),
         ),
         (
             "host with an embedded port",
-            json!({"smtpHost": "smtp.example.invalid:587", "smtpPort": port, "from": "lux@example.invalid", "to": "ops@example.invalid"}),
+            json!({"smtpHost": "smtp.example.invalid:587", "smtpPort": port, "from": "flux@example.invalid", "to": "ops@example.invalid"}),
         ),
         (
             "host that cannot be a tls server name",
-            json!({"smtpHost": format!("{}.invalid", "a".repeat(64)), "smtpPort": port, "security": "starttls", "from": "lux@example.invalid", "to": "ops@example.invalid"}),
+            json!({"smtpHost": format!("{}.invalid", "a".repeat(64)), "smtpPort": port, "security": "starttls", "from": "flux@example.invalid", "to": "ops@example.invalid"}),
         ),
         (
             "zero port",
-            json!({"smtpHost": host, "smtpPort": 0, "from": "lux@example.invalid", "to": "ops@example.invalid"}),
+            json!({"smtpHost": host, "smtpPort": 0, "from": "flux@example.invalid", "to": "ops@example.invalid"}),
         ),
         (
             "missing from",
@@ -597,15 +597,15 @@ async fn an_invalid_configuration_is_a_permanent_failure_with_a_stable_code()
         ),
         (
             "no recipients",
-            json!({"smtpHost": host, "smtpPort": port, "from": "lux@example.invalid", "to": " , "}),
+            json!({"smtpHost": host, "smtpPort": port, "from": "flux@example.invalid", "to": " , "}),
         ),
         (
             "invalid recipient",
-            json!({"smtpHost": host, "smtpPort": port, "from": "lux@example.invalid", "to": "ops@example.invalid, nope"}),
+            json!({"smtpHost": host, "smtpPort": port, "from": "flux@example.invalid", "to": "ops@example.invalid, nope"}),
         ),
         (
             "too many recipients",
-            json!({"smtpHost": host, "smtpPort": port, "from": "lux@example.invalid", "to": too_many_recipients}),
+            json!({"smtpHost": host, "smtpPort": port, "from": "flux@example.invalid", "to": too_many_recipients}),
         ),
     ];
 
@@ -649,7 +649,7 @@ async fn the_plaintext_seam_only_applies_to_a_loopback_connection_address()
         "smtpHost": "192.168.255.254",
         "smtpPort": 2525,
         "security": "none",
-        "from": "lux@example.invalid",
+        "from": "flux@example.invalid",
         "to": "ops@example.invalid",
     });
 
@@ -679,7 +679,7 @@ async fn the_destination_guard_blocks_an_unapproved_loopback_relay()
 
     let result = session
         .notify(send_params_with_private_approval(
-            email_config(server.address, "none", Some("lux@example.invalid")),
+            email_config(server.address, "none", Some("flux@example.invalid")),
             Some(TEST_SECRET),
             false,
         ))
@@ -706,7 +706,7 @@ async fn the_destination_guard_still_blocks_cloud_metadata_with_private_approval
         "smtpHost": "169.254.169.254",
         "smtpPort": 25,
         "security": "starttls",
-        "from": "lux@example.invalid",
+        "from": "flux@example.invalid",
         "to": "ops@example.invalid",
     });
 
@@ -733,7 +733,7 @@ async fn a_transient_smtp_reply_is_retryable() -> Result<(), Box<dyn std::error:
 
     let result = session
         .notify(send_params(
-            email_config(server.address, "none", Some("lux@example.invalid")),
+            email_config(server.address, "none", Some("flux@example.invalid")),
             Some(TEST_SECRET),
         ))
         .await?;
@@ -754,7 +754,7 @@ async fn permanent_smtp_replies_are_failures() -> Result<(), Box<dyn std::error:
 
         let result = session
             .notify(send_params(
-                email_config(server.address, "none", Some("lux@example.invalid")),
+                email_config(server.address, "none", Some("flux@example.invalid")),
                 Some(REJECTED_SECRET),
             ))
             .await?;
@@ -803,7 +803,7 @@ async fn the_default_port_follows_the_security_mode() -> Result<(), Box<dyn std:
         let config = json!({
             "smtpHost": "127.0.0.1",
             "security": security,
-            "from": "lux@example.invalid",
+            "from": "flux@example.invalid",
             "to": "ops@example.invalid",
         });
         let result = session
@@ -833,7 +833,7 @@ async fn a_silent_smtp_server_ticks_the_delivery_timeout() -> Result<(), Box<dyn
     let started = Instant::now();
     let result = session
         .notify(send_params(
-            email_config(server.address, "none", Some("lux@example.invalid")),
+            email_config(server.address, "none", Some("flux@example.invalid")),
             Some(TEST_SECRET),
         ))
         .await?;
@@ -860,7 +860,7 @@ async fn the_transport_security_modes_are_validated_before_relaying()
     let mut session = Session::start(None).await?;
     let starttls = session
         .notify(send_params(
-            email_config(server.address, "starttls", Some("lux@example.invalid")),
+            email_config(server.address, "starttls", Some("flux@example.invalid")),
             Some(TEST_SECRET),
         ))
         .await?;
@@ -877,7 +877,7 @@ async fn the_transport_security_modes_are_validated_before_relaying()
     let server = FakeSmtp::start(SmtpReply::Deliver).await?;
     let smtps = session
         .notify(send_params(
-            email_config(server.address, "ssl", Some("lux@example.invalid")),
+            email_config(server.address, "ssl", Some("flux@example.invalid")),
             Some(TEST_SECRET),
         ))
         .await?;
@@ -923,24 +923,24 @@ async fn unknown_methods_are_reported_without_stopping_the_plugin()
 fn the_packaged_manifest_is_a_single_secret_notification_provider()
 -> Result<(), Box<dyn std::error::Error>> {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("manifests/org.lux.notifier.email.json");
+        .join("manifests/org.flux.notifier.email.json");
     let manifest = PluginManifest::from_value(serde_json::from_str(
         &std::fs::read_to_string(path)?
             .replace("__VERSION__", "0.1.0")
             .replace(
                 "__ENTRYPOINT__",
-                "binaries/${platform}-${arch}/lux-plugin-notifier-email",
+                "binaries/${platform}-${arch}/flux-plugin-notifier-email",
             ),
     )?)?;
 
-    assert_eq!(manifest.id, "org.lux.notifier.email");
+    assert_eq!(manifest.id, "org.flux.notifier.email");
     assert_eq!(manifest.version, "0.1.0");
     assert_eq!(manifest.plugin_type, "notification");
     assert_eq!(manifest.category, "NOTIFICATION");
     assert_eq!(manifest.capabilities, vec!["notification.send".to_owned()]);
     assert_eq!(
         manifest.runtime.entrypoint,
-        "binaries/${platform}-${arch}/lux-plugin-notifier-email"
+        "binaries/${platform}-${arch}/flux-plugin-notifier-email"
     );
 
     let secret = manifest

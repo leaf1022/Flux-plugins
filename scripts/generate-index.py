@@ -33,8 +33,8 @@ def main() -> None:
     else:
         result = {
             "formatVersion": 1,
-            "name": "Lux Plugins",
-            "description": "Lux 官方插件目录",
+            "name": "Flux Plugins",
+            "description": "Flux 官方插件目录",
         }
         grouped = {}
     for plugin_id in removed_ids:

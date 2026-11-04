@@ -205,7 +205,7 @@ impl DoubanClient {
         let http = apply_proxy(
             Client::builder()
                 .timeout(config.timeout)
-                .user_agent("Lux-Douban/1.0"),
+                .user_agent("Flux-Douban/1.0"),
             config.proxy_url.as_deref(),
         )
         .map_err(|error| DoubanError::InvalidConfig(error.to_string()))?

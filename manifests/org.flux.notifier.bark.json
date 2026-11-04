@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
-  "id": "org.lux.notifier.bark",
+  "id": "org.flux.notifier.bark",
   "name": "Bark 推送",
-  "description": "通过 Bark App 把 Lux 通知推送到 iPhone",
+  "description": "通过 Bark App 把 Flux 通知推送到 iPhone",
   "version": "__VERSION__",
   "apiVersion": 1,
   "runtime": {

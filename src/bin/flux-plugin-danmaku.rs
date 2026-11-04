@@ -1,7 +1,7 @@
 use std::{fmt, path::PathBuf};
 
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
-use luxd::application::{
+use fluxd::application::{
     danmaku::{validate_danmaku_xml, validate_provider_base_url},
     media_matching::{MediaKind, normalize_title, parse_media_name},
     plugin_protocol::{
@@ -16,7 +16,7 @@ use reqwest::{Client, StatusCode, Url};
 use serde_json::{Value, json};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader, BufWriter};
 
-const PLUGIN_ID: &str = "org.lux.danmaku";
+const PLUGIN_ID: &str = "org.flux.danmaku";
 const PLUGIN_NAME: &str = "弹幕匹配";
 const MAX_RPC_XML_BYTES: usize = 3 * 1024 * 1024;
 /// Budget for one serialized search answer, kept below the host's 4 MiB plugin response line.
@@ -38,7 +38,7 @@ impl DanmakuProviderClient {
             .map_err(|_| DanmakuProviderError::InvalidProviderUrl)?
             .normalized()
             .to_owned();
-        let builder = luxd::network::client_builder_from_env_or(proxy_url)
+        let builder = fluxd::network::client_builder_from_env_or(proxy_url)
             .map_err(|_| DanmakuProviderError::InvalidProxy)?;
         let client = builder
             .timeout(PROVIDER_TIMEOUT)
@@ -526,7 +526,7 @@ async fn handle_request(request: &PluginRequest) -> PluginResponse {
 
 async fn match_danmaku(request: DanmakuMatchRpcRequest) -> Result<Value, DanmakuProviderError> {
     let provider_url = provider_url().ok_or(DanmakuProviderError::InvalidRequest)?;
-    let proxy_url = std::env::var("LUX_PROXY_URL").ok();
+    let proxy_url = std::env::var("FLUX_PROXY_URL").ok();
     let provider = DanmakuProviderClient::new(&provider_url, proxy_url.as_deref())?;
     let mut candidate_file_names = Vec::with_capacity(1 + request.alternate_file_names.len());
     candidate_file_names.push(request.file_name);
@@ -564,7 +564,7 @@ async fn match_danmaku(request: DanmakuMatchRpcRequest) -> Result<Value, Danmaku
 
 fn configured_provider() -> Result<DanmakuProviderClient, DanmakuProviderError> {
     let provider_url = provider_url().ok_or(DanmakuProviderError::InvalidRequest)?;
-    let proxy_url = std::env::var("LUX_PROXY_URL").ok();
+    let proxy_url = std::env::var("FLUX_PROXY_URL").ok();
     DanmakuProviderClient::new(&provider_url, proxy_url.as_deref())
 }
 
@@ -589,7 +589,7 @@ async fn fetch_danmaku(request: DanmakuFetchRpcRequest) -> Result<Value, Danmaku
 }
 
 fn provider_url() -> Option<String> {
-    let config_dir = std::env::var_os("LUX_CONFIG_DIR").map(PathBuf::from)?;
+    let config_dir = std::env::var_os("FLUX_CONFIG_DIR").map(PathBuf::from)?;
     let path = config_dir
         .join("plugin-config")
         .join(format!("{PLUGIN_ID}.json"));

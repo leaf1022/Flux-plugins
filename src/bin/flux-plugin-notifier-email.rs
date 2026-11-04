@@ -1,8 +1,8 @@
-//! SMTP notifier plugin (`org.lux.notifier.email`).
+//! SMTP notifier plugin (`org.flux.notifier.email`).
 //!
-//! The plugin owns one provider-specific concern: turning a Lux notification into a plain-text
+//! The plugin owns one provider-specific concern: turning a Flux notification into a plain-text
 //! email and handing it to an SMTP relay. Everything else comes from
-//! `luxd::application::notifier_plugin_sdk`: the stdio JSON-RPC loop ([`run_notifier`]), the shared
+//! `fluxd::application::notifier_plugin_sdk`: the stdio JSON-RPC loop ([`run_notifier`]), the shared
 //! ten second delivery window ([`NOTIFIER_HTTP_TIMEOUT`]), the `DELIVERED`/`RETRYABLE`/`FAILED`
 //! classification helpers ([`delivered`], [`retryable`], [`failed`]) and the core notification text
 //! ([`render_event_text`]).
@@ -20,15 +20,7 @@
 
 use std::{str::FromStr, time::Duration};
 
-use lettre::{
-    Address, AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
-    message::{Mailbox, header::ContentType},
-    transport::smtp::{
-        authentication::Credentials,
-        client::{Tls, TlsParameters},
-    },
-};
-use luxd::application::{
+use fluxd::application::{
     notifier_plugin_sdk::{
         DestinationGuardError, GuardedHost, NOTIFIER_HTTP_TIMEOUT, delivered, failed, guard_host,
         render_event_text, retryable, run_notifier,
@@ -37,10 +29,18 @@ use luxd::application::{
         NotificationSendRpcRequest, NotificationSendRpcResult, NotificationSendStatus,
     },
 };
+use lettre::{
+    Address, AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
+    message::{Mailbox, header::ContentType},
+    transport::smtp::{
+        authentication::Credentials,
+        client::{Tls, TlsParameters},
+    },
+};
 use serde_json::Value;
 
 /// Stable plugin identity, also used as the log prefix so a captured log is attributable.
-const PLUGIN_ID: &str = "org.lux.notifier.email";
+const PLUGIN_ID: &str = "org.flux.notifier.email";
 /// Port used when the destination configuration omits `smtpPort`.
 const DEFAULT_STARTTLS_PORT: u16 = 587;
 /// Port used when the destination omits `smtpPort` and selects implicit TLS.
@@ -52,7 +52,7 @@ const MAX_SECRET_CHARS: usize = 4_096;
 /// Upper bound of one destination's recipient list.
 const MAX_RECIPIENTS: usize = 20;
 /// Test-only tightening knob: it can only shorten the delivery window, never extend it.
-const TIMEOUT_SECONDS_ENV: &str = "LUX_PLUGIN_SMTP_TIMEOUT_SECONDS";
+const TIMEOUT_SECONDS_ENV: &str = "FLUX_PLUGIN_SMTP_TIMEOUT_SECONDS";
 /// Test-only plaintext seam.
 ///
 /// A notification destination never offers an unencrypted SMTP mode: the manifest declares only
@@ -60,7 +60,7 @@ const TIMEOUT_SECONDS_ENV: &str = "LUX_PLUGIN_SMTP_TIMEOUT_SECONDS";
 /// `1` *and* the relay is a loopback address. The seam exists because the integration suite drives
 /// the real binary against a plaintext fake relay bound to `127.0.0.1`; it is deliberately absent
 /// from the manifest and from the documented user-facing contract.
-const PLAINTEXT_TEST_ENV: &str = "LUX_NOTIFIER_EMAIL_TEST_PLAINTEXT";
+const PLAINTEXT_TEST_ENV: &str = "FLUX_NOTIFIER_EMAIL_TEST_PLAINTEXT";
 
 /// The destination configuration is unusable; retrying cannot fix it.
 const INVALID_CONFIG: &str = "invalid_config";

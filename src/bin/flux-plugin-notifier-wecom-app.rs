@@ -1,7 +1,7 @@
-//! Lux notification plugin for a WeCom (企业微信) self-built application.
+//! Flux notification plugin for a WeCom (企业微信) self-built application.
 //!
 //! The process shell, outbound HTTP client, status classification helpers and event text rendering
-//! all come from `luxd::application::notifier_plugin_sdk`; this file only owns the WeCom app
+//! all come from `fluxd::application::notifier_plugin_sdk`; this file only owns the WeCom app
 //! authentication and payload building described in `docs/PLUGIN-SDK.md`.
 //!
 //! The application `corpsecret` only ever arrives through the RPC request's `secret` field. It is
@@ -18,7 +18,7 @@ use std::{
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
-use luxd::application::{
+use fluxd::application::{
     notifier_plugin_sdk::{
         DestinationGuardError, delivered, failed, guard_destination,
         outbound_http_client_builder_from_env, render_event_text, result_from_http_status,

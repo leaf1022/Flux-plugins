@@ -7,7 +7,7 @@ use axum::{
     routing::{get, post},
 };
 use base64::{Engine as _, engine::general_purpose::STANDARD as BASE64};
-use luxd::application::plugin_protocol::{
+use fluxd::application::plugin_protocol::{
     DANMAKU_FETCH_CAPABILITY, DANMAKU_MATCH_CAPABILITY, DANMAKU_SEARCH_CAPABILITY,
     DanmakuMatchRpcResult, DanmakuMatchStatus, DanmakuSearchResult, PLUGIN_API_VERSION,
     PLUGIN_CATEGORY_MEDIA, PLUGIN_FORMAT_VERSION, PLUGIN_TYPE_DANMAKU, PluginManifest,
@@ -58,15 +58,15 @@ async fn danmaku_plugin_process_matches_and_returns_xml() -> Result<(), Box<dyn 
     let config_dir = directory.path().join("config");
     tokio::fs::create_dir_all(config_dir.join("plugin-config")).await?;
     tokio::fs::write(
-        config_dir.join("plugin-config/org.lux.danmaku.json"),
+        config_dir.join("plugin-config/org.flux.danmaku.json"),
         serde_json::to_vec(&json!({
             "providerBaseUrl": format!("http://127.0.0.1:{}", address.port())
         }))?,
     )
     .await?;
 
-    let mut child = Command::new(env!("CARGO_BIN_EXE_lux-plugin-danmaku"))
-        .env("LUX_CONFIG_DIR", &config_dir)
+    let mut child = Command::new(env!("CARGO_BIN_EXE_flux-plugin-danmaku"))
+        .env("FLUX_CONFIG_DIR", &config_dir)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()?;
@@ -83,7 +83,7 @@ async fn danmaku_plugin_process_matches_and_returns_xml() -> Result<(), Box<dyn 
             .result
             .as_ref()
             .and_then(|value| value["id"].as_str()),
-        Some("org.lux.danmaku")
+        Some("org.flux.danmaku")
     );
 
     let request = PluginRequest::new(
@@ -146,15 +146,15 @@ async fn danmaku_plugin_tries_alternate_file_names_after_no_match()
     let config_dir = directory.path().join("config");
     tokio::fs::create_dir_all(config_dir.join("plugin-config")).await?;
     tokio::fs::write(
-        config_dir.join("plugin-config/org.lux.danmaku.json"),
+        config_dir.join("plugin-config/org.flux.danmaku.json"),
         serde_json::to_vec(&json!({
             "providerBaseUrl": format!("http://127.0.0.1:{}", address.port())
         }))?,
     )
     .await?;
 
-    let mut child = Command::new(env!("CARGO_BIN_EXE_lux-plugin-danmaku"))
-        .env("LUX_CONFIG_DIR", &config_dir)
+    let mut child = Command::new(env!("CARGO_BIN_EXE_flux-plugin-danmaku"))
+        .env("FLUX_CONFIG_DIR", &config_dir)
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()?;
@@ -228,14 +228,14 @@ impl PluginHarness {
         let config_dir = directory.path().join("config");
         tokio::fs::create_dir_all(config_dir.join("plugin-config")).await?;
         tokio::fs::write(
-            config_dir.join("plugin-config/org.lux.danmaku.json"),
+            config_dir.join("plugin-config/org.flux.danmaku.json"),
             serde_json::to_vec(&json!({
                 "providerBaseUrl": format!("http://127.0.0.1:{}", address.port())
             }))?,
         )
         .await?;
-        let mut child = Command::new(env!("CARGO_BIN_EXE_lux-plugin-danmaku"))
-            .env("LUX_CONFIG_DIR", &config_dir)
+        let mut child = Command::new(env!("CARGO_BIN_EXE_flux-plugin-danmaku"))
+            .env("FLUX_CONFIG_DIR", &config_dir)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .spawn()?;
@@ -289,7 +289,7 @@ fn error_code(response: &PluginResponse) -> Option<&str> {
 #[test]
 fn the_shipped_manifest_declares_manual_match_capabilities_the_host_accepts() {
     let manifest: Value =
-        serde_json::from_str(include_str!("../manifests/org.lux.danmaku.json")).expect("json");
+        serde_json::from_str(include_str!("../manifests/org.flux.danmaku.json")).expect("json");
     assert_eq!(
         manifest["capabilities"],
         json!(["danmaku.match", "danmaku.search", "danmaku.fetch"])
@@ -308,7 +308,7 @@ fn the_manifest_rules_match_the_host_for_manual_match_capabilities() {
     let manifest = |capabilities: &[&str]| {
         json!({
             "formatVersion": PLUGIN_FORMAT_VERSION,
-            "id": "org.lux.danmaku",
+            "id": "org.flux.danmaku",
             "name": "Danmaku provider",
             "version": "1.0.0",
             "apiVersion": PLUGIN_API_VERSION,

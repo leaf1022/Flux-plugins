@@ -1,6 +1,6 @@
-//! End-to-end tests for the Bark notification plugin (`org.lux.notifier.bark`).
+//! End-to-end tests for the Bark notification plugin (`org.flux.notifier.bark`).
 //!
-//! Every test drives the real plugin process over the Lux stdio JSON-RPC protocol and points the
+//! Every test drives the real plugin process over the Flux stdio JSON-RPC protocol and points the
 //! plugin at a local mock Bark server on `127.0.0.1`. No test reaches a real Bark deployment and no
 //! real credential appears anywhere in this file.
 
@@ -19,7 +19,7 @@ use axum::{
     response::Response,
     routing::any,
 };
-use luxd::application::plugin_protocol::{
+use fluxd::application::plugin_protocol::{
     NotificationSendRpcResult, NotificationSendStatus, PluginManifest, PluginRequest,
     PluginResponse,
 };
@@ -32,7 +32,7 @@ use tokio::{
     time::sleep,
 };
 
-const PLUGIN_ID: &str = "org.lux.notifier.bark";
+const PLUGIN_ID: &str = "org.flux.notifier.bark";
 /// A fake device key in the Bark format. Never a real credential.
 const DEVICE_KEY: &str = "device_key-1";
 
@@ -50,16 +50,16 @@ impl Plugin {
 
     /// Spawns the plugin with a clean proxy environment plus explicit overrides.
     ///
-    /// A notification plugin never receives `LUX_CONFIG_DIR`, so the plugin must not depend on it.
+    /// A notification plugin never receives `FLUX_CONFIG_DIR`, so the plugin must not depend on it.
     /// Proxy variables are cleared (and `NO_PROXY` is left unset, so a test that sets a proxy really
     /// exercises it) because the loopback mock server must always be reached directly.
     fn spawn_with_environment(
         overrides: &[(&str, &str)],
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        let mut command = Command::new(env!("CARGO_BIN_EXE_lux-plugin-notifier-bark"));
+        let mut command = Command::new(env!("CARGO_BIN_EXE_flux-plugin-notifier-bark"));
         command
-            .env_remove("LUX_CONFIG_DIR")
-            .env_remove("LUX_PROXY_URL")
+            .env_remove("FLUX_CONFIG_DIR")
+            .env_remove("FLUX_PROXY_URL")
             .env_remove("NO_PROXY")
             .env_remove("no_proxy");
         for variable in [
@@ -164,7 +164,7 @@ fn notification_params_with_approval(
             "data": {
                 "libraryId": "library-1",
                 "addedCount": 2,
-                "source": "lux",
+                "source": "flux",
                 "title": "媒体新增",
                 "content": "新增媒体：2 个\n媒体库：电影",
                 "body": "新增媒体：2 个\n媒体库：电影",
@@ -188,7 +188,7 @@ fn manifest() -> Result<PluginManifest, Box<dyn std::error::Error>> {
         .replace("__VERSION__", "0.1.0")
         .replace(
             "__ENTRYPOINT__",
-            "binaries/${platform}-${arch}/lux-plugin-notifier-bark",
+            "binaries/${platform}-${arch}/flux-plugin-notifier-bark",
         );
     Ok(PluginManifest::from_value(serde_json::from_str(&text)?)?)
 }
@@ -205,7 +205,7 @@ fn manifest_declares_one_bark_secret_field_and_non_secret_target_settings()
     assert_eq!(manifest.version, "0.1.0");
     assert_eq!(
         manifest.runtime.entrypoint,
-        "binaries/${platform}-${arch}/lux-plugin-notifier-bark"
+        "binaries/${platform}-${arch}/flux-plugin-notifier-bark"
     );
 
     let keys = manifest
@@ -549,7 +549,7 @@ async fn delivers_a_push_with_the_configured_target_and_core_text()
         |port| {
             json!({
                 "serverUrl": format!("http://127.0.0.1:{port}/"),
-                "group": "Lux",
+                "group": "Flux",
                 "level": "timeSensitive",
                 "icon": "https://example.invalid/icon.png",
                 "sound": "bell",
@@ -577,7 +577,7 @@ async fn delivers_a_push_with_the_configured_target_and_core_text()
     assert_eq!(push.body["device_key"], DEVICE_KEY);
     assert_eq!(push.body["title"], "媒体新增");
     assert_eq!(push.body["body"], "新增媒体：2 个\n媒体库：电影");
-    assert_eq!(push.body["group"], "Lux");
+    assert_eq!(push.body["group"], "Flux");
     assert_eq!(push.body["level"], "timeSensitive");
     assert_eq!(push.body["icon"], "https://example.invalid/icon.png");
     assert_eq!(push.body["sound"], "bell");

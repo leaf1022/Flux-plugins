@@ -21,7 +21,7 @@ use axum::{
     response::IntoResponse,
     routing::{get, post},
 };
-use luxd::application::plugin_protocol::{
+use fluxd::application::plugin_protocol::{
     NotificationSendRpcResult, NotificationSendStatus, PluginRequest, PluginResponse,
 };
 use serde_json::{Value, json};
@@ -47,8 +47,8 @@ struct Plugin {
 
 impl Plugin {
     async fn start() -> Result<Self, Box<dyn std::error::Error>> {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_lux-plugin-notifier-wecom-app"))
-            .env_remove("LUX_PROXY_URL")
+        let mut child = Command::new(env!("CARGO_BIN_EXE_flux-plugin-notifier-wecom-app"))
+            .env_remove("FLUX_PROXY_URL")
             .env_remove("HTTP_PROXY")
             .env_remove("HTTPS_PROXY")
             .env_remove("ALL_PROXY")
@@ -770,19 +770,19 @@ async fn reports_a_timeout_as_retryable() -> Result<(), Box<dyn std::error::Erro
 #[test]
 fn manifest_declares_one_sensitive_password_secret_field() -> Result<(), Box<dyn std::error::Error>>
 {
-    let manifest: luxd::application::plugin_protocol::PluginManifest = serde_json::from_str(
-        &std::fs::read_to_string("manifests/org.lux.notifier.wecom-app.json")?
+    let manifest: fluxd::application::plugin_protocol::PluginManifest = serde_json::from_str(
+        &std::fs::read_to_string("manifests/org.flux.notifier.wecom-app.json")?
             .replace("__VERSION__", "0.1.0")
             .replace(
                 "__ENTRYPOINT__",
-                "binaries/${platform}-${arch}/lux-plugin-notifier-wecom-app",
+                "binaries/${platform}-${arch}/flux-plugin-notifier-wecom-app",
             ),
     )?;
     manifest
         .validate()
         .map_err(|error| format!("manifest is not installable: {error}"))?;
 
-    assert_eq!(manifest.id, "org.lux.notifier.wecom-app");
+    assert_eq!(manifest.id, "org.flux.notifier.wecom-app");
     assert_eq!(manifest.version, "0.1.0");
     assert_eq!(manifest.plugin_type, "notification");
     assert_eq!(manifest.category, "NOTIFICATION");

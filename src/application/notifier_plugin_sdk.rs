@@ -1,7 +1,7 @@
-//! Shared runtime for Lux notification plugins.
+//! Shared runtime for Flux notification plugins.
 //!
-//! A notification plugin is a separate process that speaks the Lux stdio JSON-RPC protocol: the
-//! host writes one [`PluginRequest`] per line and reads one [`PluginResponse`] per line. Lux keeps
+//! A notification plugin is a separate process that speaks the Flux stdio JSON-RPC protocol: the
+//! host writes one [`PluginRequest`] per line and reads one [`PluginResponse`] per line. Flux keeps
 //! every cross-cutting concern here so a channel plugin (Bark, WeCom, Feishu, SMTP, Webhook, ...)
 //! only owns provider-specific authentication and payload building:
 //!
@@ -9,7 +9,7 @@
 //! - [`outbound_http_client`] builds the outbound client with the host's proxy policy, a 10 second
 //!   timeout and no redirects.
 //! - [`classify_http_status`] maps an upstream status onto `DELIVERED`, `RETRYABLE` or `FAILED`.
-//! - [`render_event_text`] turns the already desensitized Lux event into the Chinese title and body
+//! - [`render_event_text`] turns the already desensitized Flux event into the Chinese title and body
 //!   a channel needs, without ever reading secrets, local paths or complete URLs.
 //! - [`guard_destination`] and [`guard_host`] resolve a destination once, reject private, loopback,
 //!   link-local, metadata and reserved addresses according to the host's `allowPrivateNetwork`
@@ -17,7 +17,7 @@
 //!
 //! The event, target and config values arrive through the RPC request; the optional `secret` is the
 //! per-destination credential the host stores outside `providerConfig`. A plugin must not try to
-//! read the Lux config directory: the host starts notification plugins without `LUX_CONFIG_DIR`.
+//! read the Flux config directory: the host starts notification plugins without `FLUX_CONFIG_DIR`.
 
 use std::{
     fmt,
@@ -49,7 +49,7 @@ use crate::{
 /// Timeout for every outbound provider request. The host already bounds a delivery attempt, so the
 /// plugin must fail inside the same window and let the host own retries.
 pub const NOTIFIER_HTTP_TIMEOUT: Duration = Duration::from_secs(10);
-/// Environment variable carrying the normalized Lux outbound proxy.
+/// Environment variable carrying the normalized Flux outbound proxy.
 pub const NOTIFIER_PROXY_URL_ENV: &str = network::PROXY_URL_ENV;
 /// Upper bound of the rendered notification title.
 pub const MAX_NOTIFIER_TITLE_CHARS: usize = 256;
@@ -282,7 +282,7 @@ async fn write_response<W: AsyncWrite + Unpin>(
 
 /// Builds the outbound client builder used by notification plugins.
 ///
-/// The builder already applies the Lux proxy policy ([`NOTIFIER_PROXY_URL_ENV`], or `proxy_url`
+/// The builder already applies the Flux proxy policy ([`NOTIFIER_PROXY_URL_ENV`], or `proxy_url`
 /// when the host supplies one), never follows redirects and gives every request
 /// [`NOTIFIER_HTTP_TIMEOUT`]. Use it instead of [`outbound_http_client`] when a destination has to be
 /// pinned with [`GuardedDestination::pin`] before the client is built.
@@ -310,7 +310,7 @@ pub fn outbound_http_client_builder(
     Ok(builder
         .timeout(NOTIFIER_HTTP_TIMEOUT)
         .redirect(reqwest::redirect::Policy::none())
-        .user_agent(concat!("lux-notifier-sdk/", env!("CARGO_PKG_VERSION"))))
+        .user_agent(concat!("flux-notifier-sdk/", env!("CARGO_PKG_VERSION"))))
 }
 
 /// Builds the outbound client builder from the plugin process environment.
@@ -321,7 +321,7 @@ pub fn outbound_http_client_builder_from_env() -> Result<ClientBuilder, Notifier
 
 /// Builds the outbound client used by notification plugins.
 ///
-/// The client honors the Lux proxy policy ([`NOTIFIER_PROXY_URL_ENV`], or `proxy_url` when the host
+/// The client honors the Flux proxy policy ([`NOTIFIER_PROXY_URL_ENV`], or `proxy_url` when the host
 /// supplies one), never follows redirects and gives every request [`NOTIFIER_HTTP_TIMEOUT`].
 pub fn outbound_http_client(proxy_url: Option<&str>) -> Result<reqwest::Client, NotifierSdkError> {
     outbound_http_client_builder(proxy_url)?
@@ -559,7 +559,7 @@ async fn resolve_guarded_host(
     })
 }
 
-/// Applies the shared Lux IP policy to one resolved destination address.
+/// Applies the shared Flux IP policy to one resolved destination address.
 ///
 /// The classification reuses the core helpers ([`ip_policy::is_dangerous_address`],
 /// [`ip_policy::is_private_address`] and [`remote_url_policy::is_private_or_reserved`]) instead of
@@ -581,7 +581,7 @@ pub(crate) fn check_destination_address(
     Ok(())
 }
 
-/// Classifies an upstream HTTP status exactly like the Lux delivery host.
+/// Classifies an upstream HTTP status exactly like the Flux delivery host.
 ///
 /// `2xx` is delivered, `408`, `425`, `429` and `5xx` are retryable, and every other status is a
 /// permanent failure caused by the destination configuration or the request content.
@@ -642,7 +642,7 @@ pub fn failed(error_code: &str) -> NotificationSendRpcResult {
 
 /// Renders the notification title and body in Chinese for a channel that only sends text.
 ///
-/// The Lux core generates `title`, `content` and `body` before an event enters the delivery queue;
+/// The Flux core generates `title`, `content` and `body` before an event enters the delivery queue;
 /// those values are forwarded unchanged because a plugin must not rewrite the notification text.
 /// When an event arrives without them the SDK renders a bounded Chinese fallback from the event
 /// allowlist only, so a credential, a local path, a complete external URL or a remote address can
@@ -675,7 +675,7 @@ pub fn render_event_text(event: &Value) -> (String, String) {
         }
     }
     if title.is_empty() {
-        title = "Lux 通知".to_owned();
+        title = "Flux 通知".to_owned();
     }
     (
         bound_text(&title, MAX_NOTIFIER_TITLE_CHARS),
@@ -1171,7 +1171,7 @@ mod tests {
             "data": {
                 "title": "媒体新增",
                 "content": "新增媒体：2 个\n媒体库：电影",
-                "source": "lux",
+                "source": "flux",
                 "timestamp": "2023-11-14T22:13:20Z"
             }
         }));
@@ -1195,14 +1195,14 @@ mod tests {
                 "remoteIp": "203.0.113.7",
                 "overview": "这是一段很长的简介",
                 "sourceId": "/media/library/secret-file.mkv",
-                "client": "Lux Web",
+                "client": "Flux Web",
                 "deviceName": "MacBook"
             }
         }));
 
         assert!(title.contains("停止播放"), "unexpected title: {title}");
         assert!(body.contains("直接播放"), "unexpected body: {body}");
-        assert!(body.contains("设备：Lux Web · MacBook"));
+        assert!(body.contains("设备：Flux Web · MacBook"));
         assert!(
             !body.contains("203.0.113.7"),
             "a fallback body must not carry the remote address"
@@ -1239,7 +1239,7 @@ mod tests {
 
         assert_eq!(
             render_event_text(&json!({})),
-            ("Lux 通知".to_owned(), "收到新的 Lux 事件".to_owned())
+            ("Flux 通知".to_owned(), "收到新的 Flux 事件".to_owned())
         );
     }
 

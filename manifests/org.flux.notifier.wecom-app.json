@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "id": "org.lux.notifier.wecom-app",
+  "id": "org.flux.notifier.wecom-app",
   "name": "企业微信应用通知",
   "description": "通过企业微信自建应用发送文本通知",
   "version": "__VERSION__",

@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "id": "org.lux.notifier.email",
+  "id": "org.flux.notifier.email",
   "name": "SMTP 邮件通知",
   "description": "通过 SMTP 服务器发送纯文本邮件通知",
   "version": "__VERSION__",
@@ -69,7 +69,7 @@
       "label": "发件人地址",
       "type": "text",
       "required": true,
-      "description": "邮件 From 地址，例如 lux@example.com。"
+      "description": "邮件 From 地址，例如 flux@example.com。"
     },
     {
       "key": "to",

@@ -1,6 +1,6 @@
 //! Address classification shared by the notifier SDK destination guard.
 //!
-//! Mirrors the Lux core webhook classification so plugins refuse the same dangerous destinations.
+//! Mirrors the Flux core webhook classification so plugins refuse the same dangerous destinations.
 
 use std::net::IpAddr;
 

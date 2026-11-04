@@ -1,5 +1,5 @@
 [package]
-name = "lux-plugins"
+name = "flux-plugins"
 version = "0.1.5"
 edition = "2024"
 rust-version = "1.85"
@@ -26,5 +26,5 @@ axum = "0.8"
 tempfile = "3"
 
 [lib]
-name = "luxd"
+name = "fluxd"
 path = "src/lib.rs"

@@ -2,7 +2,7 @@ use std::{env, fmt, net::IpAddr};
 
 use reqwest::{Client, ClientBuilder, Proxy, Url};
 
-pub const PROXY_URL_ENV: &str = "LUX_PROXY_URL";
+pub const PROXY_URL_ENV: &str = "FLUX_PROXY_URL";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum NetworkProxyError {
@@ -106,7 +106,7 @@ impl RemoteAccessPolicy {
     }
 
     pub fn from_env() -> Self {
-        let value = std::env::var("LUX_TRUSTED_PROXY_CIDRS").unwrap_or_default();
+        let value = std::env::var("FLUX_TRUSTED_PROXY_CIDRS").unwrap_or_default();
         Self::from_cidrs(value.split(',').filter(|value| !value.trim().is_empty()))
             .unwrap_or_default()
     }

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, env, io, path::PathBuf, time::Duration};
 
-use luxd::{
+use fluxd::{
     application::plugin_protocol::{
         CHAPTER_LOOKUP_CAPABILITY, CHAPTER_LOOKUP_METHOD, ChapterDetectMarkerType,
         ChapterDetectRpcMarker, ChapterLookupRpcEpisode, ChapterLookupRpcRequest,
@@ -17,7 +17,7 @@ use tokio::{
     time::sleep,
 };
 
-const PLUGIN_ID: &str = "org.lux.theintrodb-chapter-source";
+const PLUGIN_ID: &str = "org.flux.theintrodb-chapter-source";
 const PLUGIN_NAME: &str = "TheIntroDB 片头片尾章节源";
 const API_BASE: &str = "https://api.theintrodb.org/v3/media";
 const MAX_EPISODES: usize = 64;
@@ -138,7 +138,7 @@ async fn lookup(params: Value) -> Result<Value, PluginRpcError> {
     let client = client_builder_from_env()
         .map_err(|_| upstream_error())?
         .timeout(REQUEST_TIMEOUT)
-        .user_agent("lux-theintrodb-chapter-source/0.1")
+        .user_agent("flux-theintrodb-chapter-source/0.1")
         .build()
         .map_err(|_| upstream_error())?;
     let mut rate_limiter = RequestRateLimiter::default();
@@ -372,7 +372,7 @@ fn validate_request(request: &ChapterLookupRpcRequest) -> Result<(), PluginRpcEr
 }
 
 async fn read_config() -> io::Result<PluginConfig> {
-    let Some(config_dir) = env::var_os("LUX_CONFIG_DIR") else {
+    let Some(config_dir) = env::var_os("FLUX_CONFIG_DIR") else {
         return Ok(PluginConfig::default());
     };
     let path = PathBuf::from(config_dir)

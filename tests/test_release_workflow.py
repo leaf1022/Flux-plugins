@@ -80,15 +80,15 @@ class ReleaseWorkflowTests(unittest.TestCase):
                     self.assertFalse(parsed_link.fragment)
 
     def test_webhook_manifest_uses_notification_target_for_url_configuration(self):
-        manifest = json.loads((ROOT / "manifests/org.lux.webhook.json").read_text())
+        manifest = json.loads((ROOT / "manifests/org.flux.webhook.json").read_text())
         fields = {field["key"]: field for field in manifest["configFields"]}
 
         self.assertNotIn("url", fields)
         self.assertFalse(fields["bodyTemplate"]["required"])
-        self.assertEqual(fields["payloadFormat"]["defaultValue"], "LUX")
+        self.assertEqual(fields["payloadFormat"]["defaultValue"], "FLUX")
 
     def test_tmdb_manifest_exposes_selectable_language_and_api_options(self):
-        manifest = json.loads((ROOT / "manifests/org.lux.tmdb.json").read_text())
+        manifest = json.loads((ROOT / "manifests/org.flux.tmdb.json").read_text())
         fields = {field["key"]: field for field in manifest["configFields"]}
 
         preferred_language = fields["preferredLanguage"]
@@ -134,29 +134,29 @@ class ReleaseWorkflowTests(unittest.TestCase):
             artifacts = temporary / "artifacts"
             artifacts.mkdir()
             write_package(
-                artifacts / "x86_64" / "org.lux.alpha-2.0.0-linux-x86_64.zip",
-                "org.lux.alpha",
+                artifacts / "x86_64" / "org.flux.alpha-2.0.0-linux-x86_64.zip",
+                "org.flux.alpha",
                 "2.0.0",
             )
             write_package(
-                artifacts / "aarch64" / "org.lux.alpha-2.0.0-linux-aarch64.zip",
-                "org.lux.alpha",
+                artifacts / "aarch64" / "org.flux.alpha-2.0.0-linux-aarch64.zip",
+                "org.flux.alpha",
                 "2.0.0",
             )
             write_package(
-                artifacts / "x86_64" / "org.lux.beta-1.0.0-linux-x86_64.zip",
-                "org.lux.beta",
+                artifacts / "x86_64" / "org.flux.beta-1.0.0-linux-x86_64.zip",
+                "org.flux.beta",
                 "1.0.0",
             )
             write_package(
-                artifacts / "aarch64" / "org.lux.beta-1.0.0-linux-aarch64.zip",
-                "org.lux.beta",
+                artifacts / "aarch64" / "org.flux.beta-1.0.0-linux-aarch64.zip",
+                "org.flux.beta",
                 "1.0.0",
             )
 
             log_path = temporary / "gh.jsonl"
             state_path = temporary / "existing-releases.json"
-            state_path.write_text(json.dumps(["org.lux.alpha"]))
+            state_path.write_text(json.dumps(["org.flux.alpha"]))
             fake_gh = write_fake_gh(temporary / "gh", log_path, state_path)
 
             environment = os.environ.copy()
@@ -168,7 +168,7 @@ class ReleaseWorkflowTests(unittest.TestCase):
                     "--artifacts",
                     str(artifacts),
                     "--repository",
-                    "Qoo-330ml/Lux-plugins",
+                    "leaf1022/Flux-plugins",
                     "--target",
                     "commit-sha",
                 ],
@@ -178,27 +178,27 @@ class ReleaseWorkflowTests(unittest.TestCase):
             )
 
             commands = [json.loads(line) for line in log_path.read_text().splitlines()]
-            self.assertEqual(commands[0], ["release", "view", "--repo", "Qoo-330ml/Lux-plugins", "org.lux.alpha"])
-            self.assertEqual(commands[1][0:4], ["release", "upload", "--repo", "Qoo-330ml/Lux-plugins"])
-            self.assertEqual(commands[1][4], "org.lux.alpha")
+            self.assertEqual(commands[0], ["release", "view", "--repo", "leaf1022/Flux-plugins", "org.flux.alpha"])
+            self.assertEqual(commands[1][0:4], ["release", "upload", "--repo", "leaf1022/Flux-plugins"])
+            self.assertEqual(commands[1][4], "org.flux.alpha")
             self.assertNotIn("--clobber", commands[1])
-            self.assertIn("org.lux.alpha-2.0.0-linux-x86_64.zip", package_names(commands[1]))
-            self.assertIn("org.lux.alpha-2.0.0-linux-aarch64.zip", package_names(commands[1]))
+            self.assertIn("org.flux.alpha-2.0.0-linux-x86_64.zip", package_names(commands[1]))
+            self.assertIn("org.flux.alpha-2.0.0-linux-aarch64.zip", package_names(commands[1]))
 
             create_command = commands[3]
-            self.assertEqual(create_command[0:4], ["release", "create", "--repo", "Qoo-330ml/Lux-plugins"])
-            self.assertEqual(create_command[4], "org.lux.beta")
+            self.assertEqual(create_command[0:4], ["release", "create", "--repo", "leaf1022/Flux-plugins"])
+            self.assertEqual(create_command[4], "org.flux.beta")
             self.assertIn("--target", create_command)
             self.assertIn("commit-sha", create_command)
-            self.assertIn("org.lux.beta-1.0.0-linux-x86_64.zip", package_names(create_command))
-            self.assertIn("org.lux.beta-1.0.0-linux-aarch64.zip", package_names(create_command))
+            self.assertIn("org.flux.beta-1.0.0-linux-x86_64.zip", package_names(create_command))
+            self.assertIn("org.flux.beta-1.0.0-linux-aarch64.zip", package_names(create_command))
 
     def test_catalog_uses_the_plugin_release_tag_for_each_package(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             temporary = Path(temporary_directory)
             artifacts = temporary / "artifacts"
-            package = artifacts / "x86_64" / "org.lux.alpha-2.0.0-linux-x86_64.zip"
-            write_package(package, "org.lux.alpha", "2.0.0")
+            package = artifacts / "x86_64" / "org.flux.alpha-2.0.0-linux-x86_64.zip"
+            write_package(package, "org.flux.alpha", "2.0.0")
             output = temporary / "index.json"
 
             subprocess.run(
@@ -208,7 +208,7 @@ class ReleaseWorkflowTests(unittest.TestCase):
                     "--artifacts",
                     str(artifacts),
                     "--repository",
-                    "Qoo-330ml/Lux-plugins",
+                    "leaf1022/Flux-plugins",
                     "--output",
                     str(output),
                 ],
@@ -220,8 +220,8 @@ class ReleaseWorkflowTests(unittest.TestCase):
             package_url = catalog["plugins"][0]["packages"][0]["url"]
             self.assertEqual(
                 package_url,
-                "https://github.com/Qoo-330ml/Lux-plugins/releases/download/"
-                "org.lux.alpha/org.lux.alpha-2.0.0-linux-x86_64.zip",
+                "https://github.com/leaf1022/Flux-plugins/releases/download/"
+                "org.flux.alpha/org.flux.alpha-2.0.0-linux-x86_64.zip",
             )
 
     def test_publish_script_rejects_empty_artifact_directory(self):
@@ -233,7 +233,7 @@ class ReleaseWorkflowTests(unittest.TestCase):
                     "--artifacts",
                     temporary_directory,
                     "--repository",
-                    "Qoo-330ml/Lux-plugins",
+                    "leaf1022/Flux-plugins",
                     "--target",
                     "commit-sha",
                 ],
@@ -279,7 +279,7 @@ with log_path.open("a") as log:
     log.write(json.dumps(args) + "\\n")
 
 command = args[0:2]
-tag = args[4] if len(args) > 4 and args[2:4] == ["--repo", "Qoo-330ml/Lux-plugins"] else ""
+tag = args[4] if len(args) > 4 and args[2:4] == ["--repo", "leaf1022/Flux-plugins"] else ""
 state = json.loads(state_path.read_text())
 if command == ["release", "view"]:
     raise SystemExit(0 if tag in state else 1)

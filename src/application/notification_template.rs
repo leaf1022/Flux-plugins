@@ -8,7 +8,7 @@ pub fn bounded_display_text(value: &str) -> String {
 pub fn render(event_type: &str, occurred_at: i64, data: &Map<String, Value>) -> Map<String, Value> {
     let content = readable_content(event_type, data);
     Map::from_iter([
-        ("source".to_owned(), json!("lux")),
+        ("source".to_owned(), json!("flux")),
         ("title".to_owned(), json!(readable_title(event_type, data))),
         ("content".to_owned(), json!(content.clone())),
         ("body".to_owned(), json!(content)),
@@ -59,7 +59,7 @@ fn readable_title(event_type: &str, data: &Map<String, Value>) -> String {
         }
         "JOB_FAILED" if is_test_notification(data) => "通知测试成功".to_owned(),
         "JOB_FAILED" => job_failed_title(data),
-        _ => "Lux 通知".to_owned(),
+        _ => "Flux 通知".to_owned(),
     }
 }
 
@@ -127,7 +127,7 @@ fn readable_content(event_type: &str, data: &Map<String, Value>) -> String {
         return playback_content(event_type, data);
     }
     if event_type == "JOB_FAILED" && is_test_notification(data) {
-        return "通知测试成功\n这是 Lux 核心模板测试通知".to_owned();
+        return "通知测试成功\n这是 Flux 核心模板测试通知".to_owned();
     }
     let mut lines = Vec::new();
     match event_type {
@@ -141,7 +141,7 @@ fn readable_content(event_type: &str, data: &Map<String, Value>) -> String {
         "SCAN_FAILED" => lines.push("扫描未完成".to_owned()),
         "METADATA_UPDATED" => lines.push("元数据已更新".to_owned()),
         "JOB_FAILED" => lines.push("任务执行失败".to_owned()),
-        _ => lines.push("收到新的 Lux 事件".to_owned()),
+        _ => lines.push("收到新的 Flux 事件".to_owned()),
     }
     append_library_value(&mut lines, data);
     append_mapped_value(&mut lines, "任务", data, "jobType", job_type_label);

@@ -1,16 +1,16 @@
 # 通知器插件参考
 
-从 Lux 主仓库 `docs/PLUGIN-SDK.md` 迁入的各通知器说明（源码与 SDK 现在都在本仓库）。
+从 Flux 主仓库 `docs/PLUGIN-SDK.md` 迁入的各通知器说明（源码与 SDK 现在都在本仓库）。
 
 ### 通知器 SDK
 
-`luxd::application::notifier_plugin_sdk` 提供通知插件共用的进程外壳，渠道插件只需实现上游认证和请求：
+`fluxd::application::notifier_plugin_sdk` 提供通知插件共用的进程外壳，渠道插件只需实现上游认证和请求：
 
 - `run_notifier(|request| async { ... })`：读取 stdin 的逐行 `PluginRequest`，把 `notification.send` 分发到
   处理器，写出 `PluginResponse`，并在 `plugin.shutdown` 后退出；无效请求行和未知方法返回错误响应但不会
   终止循环。需要自定义流时使用 `run_notifier_session(reader, writer, handler)`。
-- `outbound_http_client(proxy_url)` / `outbound_http_client_from_env()`：统一的出站 client，读取 Lux 代理配置
-  （`LUX_PROXY_URL`），10 秒超时且不跟随重定向。需要先钉住目的地地址时使用
+- `outbound_http_client(proxy_url)` / `outbound_http_client_from_env()`：统一的出站 client，读取 Flux 代理配置
+  （`FLUX_PROXY_URL`），10 秒超时且不跟随重定向。需要先钉住目的地地址时使用
   `outbound_http_client_builder(proxy_url)` / `outbound_http_client_builder_from_env()` 取到同一个配置好的
   `reqwest::ClientBuilder`，再调用 `GuardedDestination::pin(builder)` 后 `build()`。
 - `guard_destination(&Url, allow_private_network)` / `guard_destination_str(&str, allow_private_network)`：解析并
@@ -26,8 +26,8 @@
 插件二进制建议只做如下接线：
 
 ```rust
-let client = luxd::application::notifier_plugin_sdk::outbound_http_client_from_env()?;
-luxd::application::notifier_plugin_sdk::run_notifier(|request| {
+let client = fluxd::application::notifier_plugin_sdk::outbound_http_client_from_env()?;
+fluxd::application::notifier_plugin_sdk::run_notifier(|request| {
     let client = client.clone();
     async move { deliver(&client, request).await }
 })
@@ -59,7 +59,7 @@ IP 分类复用核心的 `webhooks::is_dangerous_address`、`webhooks::is_privat
 | `PrivateAddress` / `DangerousAddress` / `ReservedAddress` | `destination_not_allowed` | 否 |
 
 ```rust
-use luxd::application::notifier_plugin_sdk::{
+use fluxd::application::notifier_plugin_sdk::{
     DestinationGuardError, failed, guard_destination, outbound_http_client_builder_from_env,
     retryable,
 };
@@ -84,9 +84,9 @@ let response = client.post(guarded.url().clone()).json(&payload).send().await;
 
 代理与 `pin()` 的关系：
 
-- 未配置 `LUX_PROXY_URL` 时，SDK 的 `outbound_http_client_builder(_from_env)` 会调用 `no_proxy()`，忽略
+- 未配置 `FLUX_PROXY_URL` 时，SDK 的 `outbound_http_client_builder(_from_env)` 会调用 `no_proxy()`，忽略
   `HTTP_PROXY`/`HTTPS_PROXY`/`ALL_PROXY` 与系统代理，保证请求直连守卫校验过的地址。
-- 管理员显式配置了 `LUX_PROXY_URL` 时，请求按管理员配置走代理（代理仍遵守 `NO_PROXY`）。此时由代理解析目标
+- 管理员显式配置了 `FLUX_PROXY_URL` 时，请求按管理员配置走代理（代理仍遵守 `NO_PROXY`）。此时由代理解析目标
   主机，`pin()` 不再决定实际连接地址；守卫仍然按解析结果做拒绝判断。
 
 通知器插件包使用 `scripts/package-notifier-plugin.sh <插件目录名> [target]` 打包：脚本从
@@ -100,26 +100,26 @@ let response = client.post(guarded.url().clone()).json(&payload).send().await;
 {"status":"DELIVERED","providerRequestId":"message-1"}
 ```
 
-宿主负责超时、重试、退避、投递记录和失败恢复。通知插件进程不会获得 `LUX_CONFIG_DIR`，不能通过文件系统
+宿主负责超时、重试、退避、投递记录和失败恢复。通知插件进程不会获得 `FLUX_CONFIG_DIR`，不能通过文件系统
 读取其他插件或服务器 Secret。Webhook、Telegram、企业微信等平台的 payload 和认证逻辑属于各自插件，不应
 写入通知核心。
 
-Lux 核心在事件进入投递队列前统一生成 `source`、`title`、`content`、`body` 和 ISO `timestamp`，并将它们
-放入 `event.data`。播放事件的进度条、播放方式、设备、大小、码率、远程 IP 和简介等展示文本也由 Lux 核心
-生成；通知插件不得重新生成或覆盖这些字段。`org.lux.webhook` 的 `url` 配置可以引用 `{title}`、`{content}`
+Flux 核心在事件进入投递队列前统一生成 `source`、`title`、`content`、`body` 和 ISO `timestamp`，并将它们
+放入 `event.data`。播放事件的进度条、播放方式、设备、大小、码率、远程 IP 和简介等展示文本也由 Flux 核心
+生成；通知插件不得重新生成或覆盖这些字段。`org.flux.webhook` 的 `url` 配置可以引用 `{title}`、`{content}`
 等核心字段并进行 URL 编码，但这只影响目标地址，不改变通知正文。插件可以根据目标平台增加外层字段映射，
-但必须保留 Lux 提供的统一通知内容。
+但必须保留 Flux 提供的统一通知内容。
 
 
-### 飞书 / Lark 通知器插件（`org.lux.notifier.feishu`）
+### 飞书 / Lark 通知器插件（`org.flux.notifier.feishu`）
 
-`plugins/org.lux.notifier.feishu` 是把 Lux 通知投递到飞书或 Lark 自定义机器人 Webhook 的参考实现。它只
-新增 `src/bin/lux-plugin-notifier-feishu.rs`、manifest 和 `tests/plugins/notifier_feishu.rs`，不修改通知
+`plugins/org.flux.notifier.feishu` 是把 Flux 通知投递到飞书或 Lark 自定义机器人 Webhook 的参考实现。它只
+新增 `src/bin/flux-plugin-notifier-feishu.rs`、manifest 和 `tests/plugins/notifier_feishu.rs`，不修改通知
 核心、SDK 或其他插件；进程外壳、出站 client、状态分类和正文渲染全部来自
-`luxd::application::notifier_plugin_sdk`。
+`fluxd::application::notifier_plugin_sdk`。
 
 - manifest：`type: "notification"`、`category: "NOTIFICATION"`、`capabilities: ["notification.send"]`，
-  入口沿用 `binaries/${platform}-${arch}/lux-plugin-notifier-feishu`。`permissions.network` 声明为 `["*"]`
+  入口沿用 `binaries/${platform}-${arch}/flux-plugin-notifier-feishu`。`permissions.network` 声明为 `["*"]`
   （与 Bark 一致），因为 `apiBase` 允许管理员指向任意 http(s) 主机；实际可达地址仍由宿主私网策略和插件目的地
   守卫约束。
 - 凭据：唯一声明且仅声明一个 `secret` 字段（`type: "password"`、`sensitive: true`、`required: true`），
@@ -132,11 +132,11 @@ Lux 核心在事件进入投递队列前统一生成 `source`、`title`、`conte
   `render_event_text` 原样转发核心生成的 `title`/`content`，插件不重写。
 - 请求：`POST {base}/open-apis/bot/v2/hook/{hookId}`，`post` 使用飞书富文本消息（标题放 `title` 字段、
   `content` 只放正文，避免标题重复），`text` 使用纯文本消息（标题作为首行）。出站 client 来自
-  `outbound_http_client_builder_from_env`：10 秒超时、不跟随重定向、遵循 `LUX_PROXY_URL`；client 因代理
+  `outbound_http_client_builder_from_env`：10 秒超时、不跟随重定向、遵循 `FLUX_PROXY_URL`；client 因代理
   配置无效无法构建时返回可重试的 `client_unavailable`，不会静默丢弃投递。
 - 目的地守卫：在构建 client 和发起任何连接之前，插件把宿主给出的 `target.allowPrivateNetwork` 原样传给
   `guard_destination`（字段缺失或 `false` 时回环/私网目的地被拒），`169.254.169.254` 等危险保留地址即使
-  批准私网也始终被拒；通过后把守卫解析出的地址 `pin` 进出站 client，防止 DNS 重绑定（配置了 `LUX_PROXY_URL`
+  批准私网也始终被拒；通过后把守卫解析出的地址 `pin` 进出站 client，防止 DNS 重绑定（配置了 `FLUX_PROXY_URL`
   时由代理解析，`pin` 不再决定实际连接地址，与 SDK 守卫小节一致）。被拒目的地返回失败状态与
   `destination_not_allowed`，DNS 暂时失败返回可重试的 `destination_unresolved`，两者都不会发出上游请求。
 - 结果分类：HTTP `2xx` 且响应 `code == 0` 为 `DELIVERED`；HTTP `429`/`5xx`（以及 `408`、`425`）与飞书
@@ -156,15 +156,15 @@ Lux 核心在事件进入投递队列前统一生成 `source`、`title`、`conte
   缺失/畸形凭据、默认未批准私网时拒绝回环目的地，
   以及批准私网仍拒绝云元数据地址 `169.254.169.254`；mock 用例都显式携带 `allowPrivateNetwork: true`，并断言
   凭据不出现在返回值和捕获的 stderr 日志中。不访问真实飞书服务，仓库里只有合成测试值。
-- 打包：`scripts/package-notifier-plugin.sh org.lux.notifier.feishu` 生成
-  `dist/plugins/org.lux.notifier.feishu-0.1.0-<platform>-<arch>.zip`（`dist/` 已被忽略，不提交产物）。
+- 打包：`scripts/package-notifier-plugin.sh org.flux.notifier.feishu` 生成
+  `dist/plugins/org.flux.notifier.feishu-0.1.0-<platform>-<arch>.zip`（`dist/` 已被忽略，不提交产物）。
 
-### Bark 通知器插件（`org.lux.notifier.bark`）
+### Bark 通知器插件（`org.flux.notifier.bark`）
 
-`org.lux.notifier.bark` 是参考实现，演示通知器插件如何只做渠道接线：使用
+`org.flux.notifier.bark` 是参考实现，演示通知器插件如何只做渠道接线：使用
 `run_notifier`、`guard_destination`、`outbound_http_client_builder_from_env`、
-`result_from_http_status`、`retryable`、`failed` 与 `render_event_text`，不读取 `LUX_CONFIG_DIR`、
-不访问 Lux 数据库或媒体目录。
+`result_from_http_status`、`retryable`、`failed` 与 `render_event_text`，不读取 `FLUX_CONFIG_DIR`、
+不访问 Flux 数据库或媒体目录。
 
 manifest 声明 `type: "notification"`、`category: "NOTIFICATION"`、`capabilities: ["notification.send"]`，
 配置字段分为两类：
@@ -183,7 +183,7 @@ manifest 声明 `type: "notification"`、`category: "NOTIFICATION"`、`capabilit
   `{device_key,title,body,group,level,icon,sound}`，未设置的可选字段省略；设备密钥只在请求体里。
 - 目的地守卫：插件把宿主给出的 `target.allowPrivateNetwork` 原样传给 `guard_destination`，默认（字段缺失或
   `false`）拒绝回环/私网目的地，`169.254.169.254` 等危险保留地址即使批准私网也始终拒绝；通过后把已解析地址
-  钉进出站 client（仅在未配置 `LUX_PROXY_URL` 时生效，见上文“代理与 `pin()` 的关系”），`serverUrl` 的路径与
+  钉进出站 client（仅在未配置 `FLUX_PROXY_URL` 时生效，见上文“代理与 `pin()` 的关系”），`serverUrl` 的路径与
   query 保持原样，重定向仍禁用。
 - 出站 client 使用宿主代理策略、10 秒超时且不跟随重定向；`2xx` 响应体最多读取 64 KiB。若进程启动时无法按
   宿主代理策略构建 client，插件直接以失败退出（不返回伪造的投递结果），因此没有额外的
@@ -198,8 +198,8 @@ manifest 声明 `type: "notification"`、`category: "NOTIFICATION"`、`capabilit
   `bark_code_<code>`，HTTP 分类失败沿用 SDK 的 `PROVIDER_HTTP_<status>`。配置校验失败或被守卫拒绝的请求不会
   发出任何上游请求，日志只记录稳定错误码，不含凭据、主机或完整 URL。
 
-打包：`scripts/package-notifier-plugin.sh org.lux.notifier.bark [target]` 读取该目录的 manifest 并输出
-`dist/plugins/org.lux.notifier.bark-0.1.0-<platform>-<arch>.zip`。测试位于
+打包：`scripts/package-notifier-plugin.sh org.flux.notifier.bark [target]` 读取该目录的 manifest 并输出
+`dist/plugins/org.flux.notifier.bark-0.1.0-<platform>-<arch>.zip`。测试位于
 `tests/plugins/notifier_bark.rs`（`cargo test --locked --test plugins notifier_bark::`），全部使用
 `127.0.0.1` 随机端口的本地 mock Bark 服务（测试显式携带 `allowPrivateNetwork: true`），覆盖成功、4xx、
 429/5xx、超时、网络失败、读响应体中断开/超时、重定向不跟随、超限响应、坏配置、缺失/非法凭据、默认未批准私网
@@ -207,8 +207,8 @@ manifest 声明 `type: "notification"`、`category: "NOTIFICATION"`、`capabilit
 
 ## 企业微信应用通知插件
 
-`org.lux.notifier.wecom-app` 通过企业微信自建应用发送文本通知，二进制为
-`lux-plugin-notifier-wecom-app`，源码在 `src/bin/lux-plugin-notifier-wecom-app.rs`。插件只做渠道认证和
+`org.flux.notifier.wecom-app` 通过企业微信自建应用发送文本通知，二进制为
+`flux-plugin-notifier-wecom-app`，源码在 `src/bin/flux-plugin-notifier-wecom-app.rs`。插件只做渠道认证和
 payload 组装，进程外壳、出站 client、状态分类和通知正文来自
 [通知器 SDK](#通知器-sdk)。
 
@@ -216,7 +216,7 @@ payload 组装，进程外壳、出站 client、状态分类和通知正文来�
 
 ```json
 {
-  "id": "org.lux.notifier.wecom-app",
+  "id": "org.flux.notifier.wecom-app",
   "type": "notification",
   "category": "NOTIFICATION",
   "capabilities": ["notification.send"],
@@ -227,12 +227,12 @@ payload 组装，进程外壳、出站 client、状态分类和通知正文来�
     {"key": "apiBase", "label": "API 基地址", "type": "text", "required": false, "defaultValue": "https://qyapi.weixin.qq.com"},
     {"key": "secret", "label": "应用 Secret", "type": "password", "required": true, "sensitive": true}
 
-## SMTP 邮件通知器（`org.lux.notifier.email`）
+## SMTP 邮件通知器（`org.flux.notifier.email`）
 
-`org.lux.notifier.email` 是一个参考实现的通知器插件，二进制为 `lux-plugin-notifier-email`，只负责
+`org.flux.notifier.email` 是一个参考实现的通知器插件，二进制为 `flux-plugin-notifier-email`，只负责
 `notification.send`：把宿主生成的通知标题作为邮件主题、正文作为纯文本邮件正文，通过管理员配置的 SMTP
 服务器投递。进程外壳、10 秒投递窗口、目的地守卫和状态分类来自
-`luxd::application::notifier_plugin_sdk`，正文来自 `render_event_text`，插件不重写通知文本。SMTP 没有 HTTP
+`fluxd::application::notifier_plugin_sdk`，正文来自 `render_event_text`，插件不重写通知文本。SMTP 没有 HTTP
 跳，因此本渠道不使用 `outbound_http_client`；单次投递由 `NOTIFIER_HTTP_TIMEOUT`（10 秒）的
 `tokio::time::timeout` 硬性截断，SMTP 应答由 `lettre` 解析，插件不读取、不记录也不转发上游响应体。
 
@@ -240,11 +240,11 @@ manifest 核心字段：
 
 ```json
 {
-  "id": "org.lux.notifier.email",
+  "id": "org.flux.notifier.email",
   "type": "notification",
   "category": "NOTIFICATION",
   "capabilities": ["notification.send"],
-  "runtime": {"kind": "process", "entrypoint": "binaries/${platform}-${arch}/lux-plugin-notifier-email"},
+  "runtime": {"kind": "process", "entrypoint": "binaries/${platform}-${arch}/flux-plugin-notifier-email"},
   "configFields": [
     {"key": "secret", "label": "SMTP 密码", "type": "password", "required": true, "sensitive": true},
     {"key": "smtpHost", "label": "SMTP 服务器", "type": "text", "required": true},
@@ -271,7 +271,7 @@ manifest 核心字段：
 （缺失或 `false` 表示不批准）原样交给 SDK 的 `guard_destination`，自己不放宽策略。未批准的私网/回环地址和
 始终禁止的保留地址（含 `169.254.169.254` 等云元数据）返回 `Failed(destination_not_allowed)`，DNS 暂时失败
 返回 `Retryable(destination_unresolved)`；被拒的请求不会建立任何连接，也不会写入主机或完整 URL。通过后插件
-用 `GuardedDestination::pin` 把已校验地址钉进按宿主代理策略构建的 client：未配置 `LUX_PROXY_URL` 时 SDK
+用 `GuardedDestination::pin` 把已校验地址钉进按宿主代理策略构建的 client：未配置 `FLUX_PROXY_URL` 时 SDK
 禁用一切环境/系统代理，请求直连该地址；管理员显式配置代理时由代理解析目标，`pin()` 不再决定连接地址。
 重定向仍然禁用，上游 `3xx` 无法绕过守卫。
 
@@ -312,8 +312,8 @@ manifest 核心字段：
 
 插件日志只写稳定结果码和无效收件人数量，不写 access_token、token 请求的 query、完整外部 URL、userid 或凭据。
 
-打包：`scripts/package-notifier-plugin.sh org.lux.notifier.wecom-app`，产物为
-`dist/plugins/org.lux.notifier.wecom-app-0.1.0-<platform>-<arch>.zip`。相关测试在
+打包：`scripts/package-notifier-plugin.sh org.flux.notifier.wecom-app`，产物为
+`dist/plugins/org.flux.notifier.wecom-app-0.1.0-<platform>-<arch>.zip`。相关测试在
 `tests/plugins/notifier_wecom_app.rs`，使用 127.0.0.1 随机端口的 mock 企业微信服务（显式携带
 `allowPrivateNetwork: true`），不访问真实租户；其中一条断言默认未批准私网时回环目的地被拒且 mock 收不到任何
 请求，另一条断言批准私网后 `169.254.169.254` 仍被拒。
@@ -337,7 +337,7 @@ manifest 核心字段：
 `target.allowPrivateNetwork` 原样传入（字段缺失或非布尔值视为 `false`，插件不得放宽）。守卫一次性解析
 `smtpHost:port` 的全部地址并逐个校验；通过后 SMTP 传输只连接守卫返回的 `primary()` 地址，连接的端口、TLS
 握手与证书校验仍使用管理员配置的主机名和端口，因此第二次 DNS 应答无法把投递改道（DNS 重绑定）。SMTP 渠道不走
-HTTP 代理，`LUX_PROXY_URL` 对它不生效；守卫校验过的地址始终是实际连接目标。被守卫拒绝时插件不打开任何连接，也
+HTTP 代理，`FLUX_PROXY_URL` 对它不生效；守卫校验过的地址始终是实际连接目标。被守卫拒绝时插件不打开任何连接，也
 不会把主机或地址写进日志。
 
 结果映射使用稳定的 snake_case 错误码：
@@ -360,8 +360,8 @@ HTTP 代理，`LUX_PROXY_URL` 对它不生效；守卫校验过的地址始终�
 `lettre` 的 rustls 后端把握手和证书失败包装成连接错误，把对话被提前关闭包装成响应错误。插件沿错误源链检查
 稳定的错误文本片段，把前一类判为永久失败、后一类判为可重试网络错误；除上述测试缝外，插件不会在加密未建立时把
 密码或收件人发给对端。插件每次投递向 stderr 写一行
-`org.lux.notifier.email: event <eventId> transport=<starttls|ssl> port=<端口> finished with <状态> (<错误码>)`，
-不包含密码、收件人地址、SMTP 主机或任何完整外部 URL。`LUX_PLUGIN_SMTP_TIMEOUT_SECONDS` 仅供测试把投递窗口
+`org.flux.notifier.email: event <eventId> transport=<starttls|ssl> port=<端口> finished with <状态> (<错误码>)`，
+不包含密码、收件人地址、SMTP 主机或任何完整外部 URL。`FLUX_PLUGIN_SMTP_TIMEOUT_SECONDS` 仅供测试把投递窗口
 收紧到 1–10 秒，不能放宽 SDK 的上限。
 
 测试（`cargo test --locked --test plugins notifier_email::`）用 `127.0.0.1` 随机端口的假 SMTP 服务器覆盖成功、
@@ -371,4 +371,4 @@ HTTP 代理，`LUX_PROXY_URL` 对它不生效；守卫校验过的地址始终�
 所有 mock 用例显式携带 `allowPrivateNetwork: true`，并断言凭据和目的主机不出现在返回值与捕获的日志中；测试不
 使用任何真实凭据或真实邮件服务。
 
-打包：`scripts/package-notifier-plugin.sh org.lux.notifier.email`。
+打包：`scripts/package-notifier-plugin.sh org.flux.notifier.email`。

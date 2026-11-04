@@ -1368,7 +1368,7 @@ mod response_tests {
     }
 
     #[test]
-    fn maps_user_policy_permissions_without_granting_lux_admin() {
+    fn maps_user_policy_permissions_without_granting_flux_admin() {
         let user = RawUser {
             id: "user-1".to_owned(),
             name: "Alice".to_owned(),

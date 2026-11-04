@@ -107,7 +107,7 @@ class ReleasePipelinePolicyTests(unittest.TestCase):
             existing = temporary / "existing-index.json"
             existing.write_text(json.dumps({
                 "formatVersion": 1,
-                "name": "Lux Plugins",
+                "name": "Flux Plugins",
                 "description": "Existing description",
                 "plugins": [
                     {"id": "org.example.alpha", "version": "1.0.0", "packages": []},
@@ -121,7 +121,7 @@ class ReleasePipelinePolicyTests(unittest.TestCase):
                 sys.executable,
                 str(ROOT / "scripts/generate-index.py"),
                 "--artifacts", str(artifacts),
-                "--repository", "Qoo-330ml/Lux-plugins",
+                "--repository", "leaf1022/Flux-plugins",
                 "--existing", str(existing),
                 "--remove-plugin-ids-json", '["org.example.removed"]',
                 "--output", str(output),
@@ -150,7 +150,7 @@ class ReleasePipelinePolicyTests(unittest.TestCase):
                 sys.executable,
                 str(ROOT / "scripts/generate-index.py"),
                 "--artifacts", str(artifacts),
-                "--repository", "Qoo-330ml/Lux-plugins",
+                "--repository", "leaf1022/Flux-plugins",
                 "--existing", str(existing),
                 "--remove-plugin-ids-json", '["org.example.remove"]',
                 "--output", str(output),
@@ -175,7 +175,7 @@ class ReleasePipelinePolicyTests(unittest.TestCase):
                 "capabilities": [],
                 "files": [],
             }))
-            binary = temporary / "lux-plugin-example"
+            binary = temporary / "flux-plugin-example"
             binary.write_bytes(b"stable binary payload")
             outputs = [temporary / "first.zip", temporary / "second.zip"]
 
@@ -203,7 +203,7 @@ class ReleasePipelinePolicyTests(unittest.TestCase):
             index = temporary / "index.json"
             index.write_text(json.dumps({"plugins": [{
                 "id": "org.example.alpha",
-                "packages": [{"url": "https://github.com/Qoo-330ml/Lux-plugins/releases/download/org.example.alpha/org.example.alpha-1.0.0-linux-x86_64.zip", "sha256": "old"}],
+                "packages": [{"url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.example.alpha/org.example.alpha-1.0.0-linux-x86_64.zip", "sha256": "old"}],
             }]}))
             log = temporary / "gh.jsonl"
             fake_gh = write_fake_gh(temporary / "gh", log, ["org.example.alpha"])
@@ -213,7 +213,7 @@ class ReleasePipelinePolicyTests(unittest.TestCase):
                 sys.executable,
                 str(ROOT / "scripts/publish-releases.py"),
                 "--artifacts", str(artifacts),
-                "--repository", "Qoo-330ml/Lux-plugins",
+                "--repository", "leaf1022/Flux-plugins",
                 "--target", "commit-sha",
                 "--existing-index", str(index),
             ]
@@ -227,12 +227,12 @@ class ReleasePipelinePolicyTests(unittest.TestCase):
             package_hash = hashlib.sha256(package.read_bytes()).hexdigest()
             index.write_text(json.dumps({"plugins": [{
                 "id": "org.example.alpha",
-                "packages": [{"url": f"https://github.com/Qoo-330ml/Lux-plugins/releases/download/org.example.alpha/{package.name}", "sha256": package_hash}],
+                "packages": [{"url": f"https://github.com/leaf1022/Flux-plugins/releases/download/org.example.alpha/{package.name}", "sha256": package_hash}],
             }]}))
             log.write_text("")
             subprocess.run(command, cwd=ROOT, env=environment, check=True)
             commands = [json.loads(line) for line in log.read_text().splitlines()]
-            self.assertEqual(commands, [["release", "view", "--repo", "Qoo-330ml/Lux-plugins", "org.example.alpha"]])
+            self.assertEqual(commands, [["release", "view", "--repo", "leaf1022/Flux-plugins", "org.example.alpha"]])
 
     def test_publisher_rejects_different_content_for_an_already_cataloged_asset(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -243,7 +243,7 @@ class ReleasePipelinePolicyTests(unittest.TestCase):
             index = temporary / "index.json"
             index.write_text(json.dumps({"plugins": [{
                 "id": "org.example.alpha",
-                "packages": [{"url": f"https://github.com/Qoo-330ml/Lux-plugins/releases/download/org.example.alpha/{package.name}", "sha256": "different"}],
+                "packages": [{"url": f"https://github.com/leaf1022/Flux-plugins/releases/download/org.example.alpha/{package.name}", "sha256": "different"}],
             }]}))
             log = temporary / "gh.jsonl"
             fake_gh = write_fake_gh(temporary / "gh", log, ["org.example.alpha"])
@@ -254,7 +254,7 @@ class ReleasePipelinePolicyTests(unittest.TestCase):
                 sys.executable,
                 str(ROOT / "scripts/publish-releases.py"),
                 "--artifacts", str(artifacts),
-                "--repository", "Qoo-330ml/Lux-plugins",
+                "--repository", "leaf1022/Flux-plugins",
                 "--target", "commit-sha",
                 "--existing-index", str(index),
             ], cwd=ROOT, env=environment, capture_output=True, text=True)
@@ -275,7 +275,7 @@ class ReleasePipelinePolicyTests(unittest.TestCase):
             index.write_text(json.dumps({"plugins": [{
                 "id": "org.example.alpha",
                 "packages": [{
-                    "url": f"https://github.com/Qoo-330ml/Lux-plugins/releases/download/org.example.alpha/{x86_package.name}",
+                    "url": f"https://github.com/leaf1022/Flux-plugins/releases/download/org.example.alpha/{x86_package.name}",
                     "sha256": hashlib.sha256(x86_package.read_bytes()).hexdigest(),
                 }],
             }]}))
@@ -288,7 +288,7 @@ class ReleasePipelinePolicyTests(unittest.TestCase):
                 sys.executable,
                 str(ROOT / "scripts/publish-releases.py"),
                 "--artifacts", str(artifacts),
-                "--repository", "Qoo-330ml/Lux-plugins",
+                "--repository", "leaf1022/Flux-plugins",
                 "--target", "commit-sha",
                 "--existing-index", str(index),
             ], cwd=ROOT, env=environment, capture_output=True, text=True)
@@ -297,7 +297,7 @@ class ReleasePipelinePolicyTests(unittest.TestCase):
             self.assertIn("GitHub release is missing", result.stderr)
             self.assertEqual(
                 [json.loads(line) for line in log.read_text().splitlines()],
-                [["release", "view", "--repo", "Qoo-330ml/Lux-plugins", "org.example.alpha"]],
+                [["release", "view", "--repo", "leaf1022/Flux-plugins", "org.example.alpha"]],
             )
 
 
@@ -327,7 +327,7 @@ args = sys.argv[1:]
 log_path = Path(%r)
 with log_path.open("a") as log:
     log.write(json.dumps(args) + "\\n")
-tag = args[4] if len(args) > 4 and args[2:4] == ["--repo", "Qoo-330ml/Lux-plugins"] else ""
+tag = args[4] if len(args) > 4 and args[2:4] == ["--repo", "leaf1022/Flux-plugins"] else ""
 if args[0:2] == ["release", "view"]:
     raise SystemExit(0 if tag in %r else 1)
 """ % (str(log_path), existing_releases)
