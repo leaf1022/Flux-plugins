@@ -20,11 +20,15 @@
   "configFields": [
     {"key": "libraryIds", "label": "媒体库", "type": "select", "required": true, "multiple": true, "optionsSource": "media-libraries", "description": "选择需要提取媒体信息的媒体库。"},
     {"key": "concurrency", "label": "并发数", "type": "number", "required": true, "defaultValue": 2, "minimum": 1, "maximum": 64, "description": "远程媒体信息提取的最大并发数。"},
-    {"key": "existingInfoPolicy", "label": "已有媒体信息处理方式", "type": "select", "required": true, "defaultValue": "SKIP", "options": [{"value": "SKIP", "label": "跳过已有媒体信息"}, {"value": "OVERWRITE", "label": "覆盖已有媒体信息"}]},
+    {"key": "existingInfoPolicy", "label": "已有媒体信息处理方式", "type": "select", "required": true, "defaultValue": "SKIP", "options": [{"value": "SKIP", "label": "数据库已有完整信息时跳过"}, {"value": "OVERWRITE", "label": "重新读取并覆盖"}]},
     {"key": "mediaInfoEnabled", "label": "提取媒体信息", "type": "toggle", "defaultValue": true},
     {"key": "thumbnailEnabled", "label": "补全 STRM 缩略图", "type": "toggle", "defaultValue": false},
     {"key": "thumbnailPositionPercent", "label": "缩略图位置", "type": "number", "required": true, "defaultValue": 30, "minimum": 1, "maximum": 99},
     {"key": "writeSidecars", "label": "写入 mediainfo.json", "type": "toggle", "defaultValue": true},
+    {"key": "persistenceMode", "label": "媒体信息持久化", "type": "select", "required": true, "defaultValue": "SAVE_AND_LOAD", "options": [{"value": "SAVE_AND_LOAD", "label": "保存并读取本地信息"}, {"value": "RESTORE_ONLY", "label": "仅从本地恢复"}, {"value": "OFF", "label": "关闭本地持久化"}], "description": "保存并读取会优先导入本地 JSON/NFO；仅从本地恢复不会访问远程媒体；关闭时保持仅远程提取。"},
+    {"key": "mediaInfoJsonRoot", "label": "媒体信息 JSON 根目录", "type": "text", "defaultValue": "", "description": "可选，例如 /volume1/flux/mediainfo。留空时读取 STRM 同目录；配置后按媒体文件完整路径镜像保存和读取 -mediainfo.json（兼容旧版根目录平铺文件）。"},
+    {"key": "ffprobePath", "label": "ffprobe 路径", "type": "text", "defaultValue": "", "description": "可选，例如 /usr/local/bin/ffprobe；留空使用插件环境变量或系统 PATH。"},
+    {"key": "ffmpegPath", "label": "ffmpeg 路径", "type": "text", "defaultValue": "", "description": "可选，例如 /usr/local/bin/ffmpeg；留空使用插件环境变量或系统 PATH。"},
     {"key": "schedule", "label": "执行计划", "type": "text", "required": true, "defaultValue": "0 3 * * *"}
   ],
   "permissions": {"network": ["media-source"], "filesystem": []},

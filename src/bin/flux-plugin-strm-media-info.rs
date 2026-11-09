@@ -43,6 +43,10 @@ struct MediaProbeRequest {
     include_thumbnail: bool,
     #[serde(default = "default_thumbnail_position_percent")]
     thumbnail_position_percent: i64,
+    #[serde(default)]
+    ffprobe_path: Option<String>,
+    #[serde(default)]
+    ffmpeg_path: Option<String>,
 }
 
 fn default_media_info_enabled() -> bool {
@@ -106,7 +110,7 @@ async fn handle_method(method: &str, params: Value) -> Result<Value, PluginRpcEr
             "supportedItemTypes": []
         })),
         "plugin.health" => Ok(json!({
-            "available": ffprobe_binary().is_ok() && ffmpeg_binary().is_ok(),
+            "available": ffprobe_binary(None).is_ok() && ffmpeg_binary(None).is_ok(),
             "configured": true
         })),
         "media.probe" => probe(params).await,
@@ -413,7 +417,7 @@ async fn probe(params: Value) -> Result<Value, PluginRpcError> {
         });
     }
     let result = if request.include_media_info {
-        run_ffprobe(&request.url).await?
+        run_ffprobe(&request.url, request.ffprobe_path.as_deref()).await?
     } else {
         empty_media_result()
     };
@@ -422,7 +426,9 @@ async fn probe(params: Value) -> Result<Value, PluginRpcError> {
             Some(duration_ticks) => Some(duration_ticks),
             // A full probe already read `format.duration`; asking again cannot find it.
             None if request.include_media_info => None,
-            None => Some(run_ffprobe_duration(&request.url).await?),
+            None => {
+                Some(run_ffprobe_duration(&request.url, request.ffprobe_path.as_deref()).await?)
+            }
         }
     } else {
         None
@@ -434,6 +440,7 @@ async fn probe(params: Value) -> Result<Value, PluginRpcError> {
                 &request.url,
                 &thumbnail_timestamp(duration_ticks, request.thumbnail_position_percent)
                     .ok_or_else(duration_error)?,
+                request.ffmpeg_path.as_deref(),
             )
             .await?,
         )
@@ -468,8 +475,11 @@ fn network_args(target: &str) -> Vec<&'static str> {
     }
 }
 
-async fn run_ffprobe(url: &str) -> Result<MediaProbeResult, PluginRpcError> {
-    let binary = ffprobe_binary()?;
+async fn run_ffprobe(
+    url: &str,
+    configured_binary: Option<&str>,
+) -> Result<MediaProbeResult, PluginRpcError> {
+    let binary = ffprobe_binary(configured_binary)?;
     let mut child = Command::new(binary)
         .args([
             "-v",
@@ -504,8 +514,11 @@ async fn run_ffprobe(url: &str) -> Result<MediaProbeResult, PluginRpcError> {
     parse_probe_json(&output.1).map_err(map_probe_error)
 }
 
-async fn run_ffprobe_duration(url: &str) -> Result<i64, PluginRpcError> {
-    let binary = ffprobe_binary()?;
+async fn run_ffprobe_duration(
+    url: &str,
+    configured_binary: Option<&str>,
+) -> Result<i64, PluginRpcError> {
+    let binary = ffprobe_binary(configured_binary)?;
     let mut child = Command::new(binary)
         .args([
             "-v",
@@ -550,8 +563,12 @@ async fn run_ffprobe_duration(url: &str) -> Result<i64, PluginRpcError> {
     parse_duration_probe(&output.1).ok_or_else(duration_error)
 }
 
-async fn run_ffmpeg_thumbnail(url: &str, timestamp: &str) -> Result<Vec<u8>, PluginRpcError> {
-    let binary = ffmpeg_binary()?;
+async fn run_ffmpeg_thumbnail(
+    url: &str,
+    timestamp: &str,
+    configured_binary: Option<&str>,
+) -> Result<Vec<u8>, PluginRpcError> {
+    let binary = ffmpeg_binary(configured_binary)?;
     let mut child = Command::new(binary)
         .args(["-hide_banner", "-loglevel", "error", "-nostdin"])
         .args(network_args(url))
@@ -685,16 +702,29 @@ fn classify_failure(stderr: &[u8], fallback: fn() -> PluginRpcError) -> PluginRp
     }
 }
 
-fn ffprobe_binary() -> Result<PathBuf, PluginRpcError> {
-    Ok(std::env::var_os("FLUX_FFPROBE_BINARY")
+fn configured_binary(configured: Option<&str>, environment: &str, fallback: &str) -> PathBuf {
+    configured
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
         .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("ffprobe")))
+        .or_else(|| std::env::var_os(environment).map(PathBuf::from))
+        .unwrap_or_else(|| PathBuf::from(fallback))
 }
 
-fn ffmpeg_binary() -> Result<PathBuf, PluginRpcError> {
-    Ok(std::env::var_os("FLUX_FFMPEG_BINARY")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("ffmpeg")))
+fn ffprobe_binary(configured: Option<&str>) -> Result<PathBuf, PluginRpcError> {
+    Ok(configured_binary(
+        configured,
+        "FLUX_FFPROBE_BINARY",
+        "ffprobe",
+    ))
+}
+
+fn ffmpeg_binary(configured: Option<&str>) -> Result<PathBuf, PluginRpcError> {
+    Ok(configured_binary(
+        configured,
+        "FLUX_FFMPEG_BINARY",
+        "ffmpeg",
+    ))
 }
 
 fn invalid_url() -> PluginRpcError {
