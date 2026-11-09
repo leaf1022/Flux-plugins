@@ -315,7 +315,7 @@
       "name": "strm媒体信息提取",
       "description": "使用 ffprobe 提取媒体信息，并使用 ffmpeg 补全 STRM 缩略图。",
       "category": "MEDIA",
-      "version": "0.2.8",
+      "version": "0.2.9",
       "runtime": "process",
       "providerKey": null,
       "aliases": [],
@@ -328,14 +328,14 @@
         {
           "platform": "linux",
           "arch": "aarch64",
-          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.strm-media-info/org.flux.strm-media-info-0.2.8-linux-aarch64.zip",
-          "sha256": "58c242cd018dfff5ec612e1ca36f034f3d511736f7fec1f1962d5a5b64684caf"
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.strm-media-info/org.flux.strm-media-info-0.2.9-linux-aarch64.zip",
+          "sha256": "bb04e96357c3958e3b96749bd4123ef007c9e389bf291932e528e4af960861d0"
         },
         {
           "platform": "linux",
           "arch": "x86_64",
-          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.strm-media-info/org.flux.strm-media-info-0.2.8-linux-x86_64.zip",
-          "sha256": "292de29c737b4f817200d365e45e85d4ff4c34a0879be48f090f335bac87cb7f"
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.strm-media-info/org.flux.strm-media-info-0.2.9-linux-x86_64.zip",
+          "sha256": "7f4a151a719220daf6de5e784f85b385529e15885b2a97311b299878eeed29b0"
         }
       ]
     },
