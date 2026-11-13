@@ -312,10 +312,10 @@
     },
     {
       "id": "org.flux.strm-media-info",
-      "name": "strm媒体信息提取",
-      "description": "使用 ffprobe 提取媒体信息，并使用 ffmpeg 补全 STRM 缩略图。",
+      "name": "STRM助手",
+      "description": "优先恢复本地 mediainfo.json/NFO 媒体信息，缺信息时远程提取，并支持 STRM 缩略图。",
       "category": "MEDIA",
-      "version": "0.2.9",
+      "version": "0.3.0",
       "runtime": "process",
       "providerKey": null,
       "aliases": [],
@@ -328,14 +328,14 @@
         {
           "platform": "linux",
           "arch": "aarch64",
-          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.strm-media-info/org.flux.strm-media-info-0.2.9-linux-aarch64.zip",
-          "sha256": "bb04e96357c3958e3b96749bd4123ef007c9e389bf291932e528e4af960861d0"
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.strm-media-info/org.flux.strm-media-info-0.3.0-linux-aarch64.zip",
+          "sha256": "c0b0fda66882cf7866da886644dddc8fb879728afa7a22fda0ac4551d7362ae0"
         },
         {
           "platform": "linux",
           "arch": "x86_64",
-          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.strm-media-info/org.flux.strm-media-info-0.2.9-linux-x86_64.zip",
-          "sha256": "7f4a151a719220daf6de5e784f85b385529e15885b2a97311b299878eeed29b0"
+          "url": "https://github.com/leaf1022/Flux-plugins/releases/download/org.flux.strm-media-info/org.flux.strm-media-info-0.3.0-linux-x86_64.zip",
+          "sha256": "b64a00ed611936e1951631e7ee3912dfb1016a0c4897e36a02db7849cd20b237"
         }
       ]
     },
