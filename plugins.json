@@ -2,7 +2,7 @@
   {"id": "org.flux.tmdb", "binary": "flux-plugin-tmdb", "version": "0.1.12", "manifest": "manifests/org.flux.tmdb.json"},
   {"id": "org.flux.login-background", "binary": "flux-plugin-login-background", "version": "0.1.1", "manifest": "manifests/org.flux.login-background.json"},
   {"id": "org.flux.douban", "binary": "flux-plugin-douban", "version": "0.1.4", "manifest": "manifests/org.flux.douban.json"},
-  {"id": "org.flux.strm-media-info", "binary": "flux-plugin-strm-media-info", "version": "0.2.9", "manifest": "manifests/org.flux.strm-media-info.json"},
+  {"id": "org.flux.strm-media-info", "binary": "flux-plugin-strm-media-info", "version": "0.3.0", "manifest": "manifests/org.flux.strm-media-info.json"},
   {"id": "org.flux.ip-hiofd", "binary": "flux-plugin-ip-hiofd", "version": "0.1.0", "manifest": "manifests/org.flux.ip-hiofd.json"},
   {"id": "org.flux.qoo-ip138", "binary": "flux-plugin-qoo-ip138", "version": "0.1.0", "manifest": "manifests/org.flux.qoo-ip138.json"},
   {"id": "org.flux.intro-outro-detector", "binary": "flux-plugin-intro-outro-detector", "version": "0.1.3", "manifest": "manifests/org.flux.intro-outro-detector.json"},

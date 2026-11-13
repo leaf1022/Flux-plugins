@@ -19,7 +19,7 @@ use tokio::{
 };
 
 const PLUGIN_ID: &str = "org.flux.strm-media-info";
-const PLUGIN_NAME: &str = "strm媒体信息提取";
+const PLUGIN_NAME: &str = "STRM助手";
 const FFPROBE_TIMEOUT: Duration = Duration::from_secs(30);
 const FFMPEG_TIMEOUT: Duration = Duration::from_secs(60);
 const MAX_OUTPUT_BYTES: usize = 4 * 1024 * 1024;

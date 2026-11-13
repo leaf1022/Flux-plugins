@@ -10,6 +10,7 @@ fn strm_media_info_manifest_declares_the_mediatidy_probe_route() {
     manifest["runtime"]["entrypoint"] = Value::String("binaries/plugin".to_owned());
 
     let manifest = PluginManifest::from_value(manifest).expect("manifest should validate");
+    assert_eq!(manifest.name, "STRM助手");
     assert!(
         manifest
             .capabilities

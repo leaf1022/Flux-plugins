@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "id": "org.flux.strm-media-info",
-  "name": "strm媒体信息提取",
-  "description": "使用 ffprobe 提取媒体信息，并使用 ffmpeg 补全 STRM 缩略图。",
+  "name": "STRM助手",
+  "description": "优先恢复本地 mediainfo.json/NFO 媒体信息，缺信息时远程提取，并支持 STRM 缩略图。",
   "version": "__VERSION__",
   "apiVersion": 1,
   "runtime": {"kind": "process", "entrypoint": "__ENTRYPOINT__"},
